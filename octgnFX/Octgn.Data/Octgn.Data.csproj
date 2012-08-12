@@ -140,6 +140,9 @@
     <Reference Include="System.Data.SQLite">
       <HintPath>..\Lib\System.Data.SQLite.dll</HintPath>
     </Reference>
+    <Reference Include="System.IO.Abstractions">
+      <HintPath>..\Octgn\packages\System.IO.Abstractions.1.4.0.32\lib\net35\System.IO.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -170,6 +173,7 @@
     </Compile>
     <Compile Include="PropertyDef.cs" />
     <Compile Include="Set.cs" />
+    <Compile Include="SharpSerializerWrapper.cs" />
     <Compile Include="SimpleConfig.cs" />
     <Compile Include="SimpleDataTableCache.cs" />
     <Compile Include="UpdateDatabase.cs" />
@@ -186,6 +190,7 @@
     <None Include="CardSet.xsx">
       <DependentUpon>CardSet.xsd</DependentUpon>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MakeDatabase.sql" />

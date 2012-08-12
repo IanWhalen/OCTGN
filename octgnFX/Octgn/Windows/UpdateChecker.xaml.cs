@@ -28,9 +28,11 @@ namespace Octgn.Windows
 		private readonly List<string> _errors = new List<string>();
 		private bool _isUpToDate = false;
 		private string _downloadURL = "";
+	    private bool _isTesting = false;
 
-		public UpdateChecker()
+		public UpdateChecker(bool testing = false)
 		{
+		    _isTesting = testing;
 			InitializeComponent();
 			IsClosingDown = false;
 			lblStatus.Content = "";

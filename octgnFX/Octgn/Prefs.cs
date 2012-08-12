@@ -7,25 +7,20 @@ namespace Octgn
 {
     public static class Prefs
     {
-        private static string _hideLoginNotifications;
 
         static Prefs()
         {
-            string hln = SimpleConfig.ReadValue("Options_HideLoginNotifications");
-            _hideLoginNotifications = hln == null || hln == "false" ? "false" : "true";
         }
 
         public static bool InstallOnBoot
         {
             get
             {
-                bool ret = true;
-                bool.TryParse(SimpleConfig.ReadValue("InstallOnBoot", true.ToString(CultureInfo.InvariantCulture)), out ret);
-                return ret;
+                return (bool)new SimpleConfig().ReadValue("InstallOnBoot", true);
             }
             set
             {
-                SimpleConfig.WriteValue("InstallOnBoot", value.ToString(CultureInfo.InvariantCulture));
+                new SimpleConfig().WriteValue("InstallOnBoot", value);
             }
         }
 
@@ -33,60 +28,48 @@ namespace Octgn
         {
             get
             {
-                bool ret = false;
-                bool present = bool.TryParse(SimpleConfig.ReadValue("CleanDatabase", true.ToString(CultureInfo.InvariantCulture)), out ret);
-                if (!present)
-                {
-                    ret = true;
-                }
-                return (ret);
+                return (bool)new SimpleConfig().ReadValue("CleanDatabase", true);
             }
             set
             {
-                SimpleConfig.WriteValue("CleanDatabase", value.ToString(CultureInfo.InvariantCulture));
+                new SimpleConfig().WriteValue("CleanDatabase", value);
             }
         }
 
         public static string Password
         {
-            get { return SimpleConfig.ReadValue("Password" , ""); }
+            get { return (string)new SimpleConfig().ReadValue("Password" , ""); }
             set
             {
-                SimpleConfig.WriteValue("Password",value);
+                new SimpleConfig().WriteValue("Password",value);
             }
         }
 
         public static string Username
         {
-            get { return SimpleConfig.ReadValue("Username", ""); }
+            get { return (string)new SimpleConfig().ReadValue("Username", ""); }
             set
             {
-                SimpleConfig.WriteValue("Username", value);
+                new SimpleConfig().WriteValue("Username", value);
             }
         }        
 
         public static bool getFilterGame(string name)
         {
-            bool ret = true;
-            if (!Boolean.TryParse(SimpleConfig.ReadValue("FilterGames_" + name, "true"), out ret))
-            {
-                ret = true;
-                SimpleConfig.WriteValue("FilterGames_" + name , true.ToString(CultureInfo.InvariantCulture));
-            }
-            return ret;
+            return (bool)new SimpleConfig().ReadValue("FilterGames_" + name, true);
         }
         
         public static void setFilterGame(string name, bool value)
         {
-            SimpleConfig.WriteValue("FilterGames_" + name, value.ToString(CultureInfo.InvariantCulture));
+            new SimpleConfig().WriteValue("FilterGames_" + name, value);
         }
 
         public static string Nickname
         {
-            get { return SimpleConfig.ReadValue("Nickname" , "null"); }
+            get { return (string)new SimpleConfig().ReadValue("Nickname" , null); }
             set
             {
-                SimpleConfig.WriteValue("Nickname",value);
+                new SimpleConfig().WriteValue("Nickname",value);
             }
         }
 
@@ -94,37 +77,36 @@ namespace Octgn
         {
             get
             {
-                return SimpleConfig.ReadValue("lastFolder" ,"");
+                return (string)new SimpleConfig().ReadValue("lastFolder" ,"");
 
             }
             set
             {
-                SimpleConfig.WriteValue("lastFolder",value);
+                new SimpleConfig().WriteValue("lastFolder",value);
             }
         }
 
-        public static string HideLoginNotifications
+        public static bool HideLoginNotifications
         {
-            get { return _hideLoginNotifications; }
+            get { return (bool)new SimpleConfig().ReadValue("Options_HideLoginNotifications",false); }
             set
             {
-                _hideLoginNotifications = value;
-                SimpleConfig.WriteValue("Options_HideLoginNotifications", value);
+                new SimpleConfig().WriteValue("Options_HideLoginNotifications", value);
             }
         }
         
         public static string DataDirectory
         {
-            get { return SimpleConfig.DataDirectory; }
-            set { SimpleConfig.DataDirectory = value; }
+            get { return new SimpleConfig().DataDirectory; }
+            set { new SimpleConfig().DataDirectory = value; }
         }
 
         public static string LastRoomName
         {
-            get { return SimpleConfig.ReadValue("lastroomname" , Skylabs.Lobby.Randomness.RandomRoomName()); }
+            get { return (string)new SimpleConfig().ReadValue("lastroomname" , Skylabs.Lobby.Randomness.RandomRoomName()); }
             set
             {
-                SimpleConfig.WriteValue("lastroomname",value);
+                new SimpleConfig().WriteValue("lastroomname",value);
             }
         }
         
@@ -132,16 +114,11 @@ namespace Octgn
         {
             get
             {
-                bool val = true;
-                if(!Boolean.TryParse(SimpleConfig.ReadValue("twosidedtable" , true.ToString(CultureInfo.InvariantCulture)),out val))
-                {
-                    SimpleConfig.WriteValue("twosidedtable",true.ToString(CultureInfo.InvariantCulture));
-                }
-                return val;
+                return (bool) new SimpleConfig().ReadValue("twosidedtable", true);
             }
             set
             {
-                SimpleConfig.WriteValue("twosidedtable",value.ToString(CultureInfo.InvariantCulture));
+                new SimpleConfig().WriteValue("twosidedtable",value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -149,17 +126,14 @@ namespace Octgn
         {
             get
             {
-                var y = SimpleConfig.ReadValue("LoginTopLoc", "100");
-                var x = SimpleConfig.ReadValue("LoginLeftLoc", "100");
-                double dx, dy = 100;
-                Double.TryParse(x, out dx);
-                Double.TryParse(y, out dy);
-                return new Point(dx, dy);
+                var y = (double)new SimpleConfig().ReadValue("LoginTopLoc", 100);
+                var x = (double) new SimpleConfig().ReadValue("LoginLeftLoc", 100);
+                return new Point(x, y);
             }
             set
             {
-                SimpleConfig.WriteValue("LoginTopLoc", value.Y.ToString(CultureInfo.InvariantCulture));
-                SimpleConfig.WriteValue("LoginLeftLoc", value.X.ToString(CultureInfo.InvariantCulture));
+                new SimpleConfig().WriteValue("LoginTopLoc", value);
+                new SimpleConfig().WriteValue("LoginLeftLoc", value);
             }
         }
 
@@ -167,17 +141,14 @@ namespace Octgn
         {
             get
             {
-                var y = SimpleConfig.ReadValue("MainTopLoc", "100");
-                var x = SimpleConfig.ReadValue("MainLeftLoc", "100");
-                double dx, dy = 100;
-                Double.TryParse(x, out dx);
-                Double.TryParse(y, out dy);
-                return new Point(dx, dy);
+                var y = (double)new SimpleConfig().ReadValue("MainTopLoc", 100);
+                var x = (double)new SimpleConfig().ReadValue("MainLeftLoc", 100);
+                return new Point(x, y);
             }
             set
             {
-                SimpleConfig.WriteValue("MainTopLoc", value.Y.ToString(CultureInfo.InvariantCulture));
-                SimpleConfig.WriteValue("MainLeftLoc", value.X.ToString(CultureInfo.InvariantCulture));
+                new SimpleConfig().WriteValue("MainTopLoc", value);
+                new SimpleConfig().WriteValue("MainLeftLoc", value);
             }
         } 
     }

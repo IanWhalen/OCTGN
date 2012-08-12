@@ -679,12 +679,12 @@ namespace Octgn.Windows
 
         private void BHideLoginNotificationsUnchecked(object sender, RoutedEventArgs e)
         {
-            Prefs.HideLoginNotifications = "false";
+            Prefs.HideLoginNotifications = false;
         }
 
         private void BHideLoginNotificationsChecked(object sender, RoutedEventArgs e)
         {
-            Prefs.HideLoginNotifications = "true";
+            Prefs.HideLoginNotifications = true;
         }
 
         private void WindowClosing(object sender, CancelEventArgs e)

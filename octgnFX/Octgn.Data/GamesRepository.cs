@@ -14,11 +14,13 @@ namespace Octgn.Data
 {
     public class GamesRepository
     {
-        public static string BasePath = SimpleConfig.DataDirectory;
+        public static string BasePath;
 
-        private static readonly string DatabasePath = Path.Combine(BasePath, "Database");
-        private static readonly string DatabaseFile = Path.Combine(DatabasePath, "master.db3");
-        private static readonly string ConString = "URI=file:" + DatabaseFile;
+        private static readonly string DatabasePath;
+
+        private static readonly string DatabaseFile;
+
+        private static readonly string ConString;
         internal static SQLiteConnection DatabaseConnection;
         private ObservableCollection<Game> _allCachedGames;
         private ObservableCollection<Game> _cachedGames;
@@ -26,7 +28,10 @@ namespace Octgn.Data
 
         static GamesRepository()
         {
-            BasePath = SimpleConfig.DataDirectory;
+            BasePath = new SimpleConfig().DataDirectory;
+            DatabasePath = Path.Combine(BasePath, "Database");
+            DatabaseFile = Path.Combine(DatabasePath, "master.db3");
+            ConString = "URI=file:" + DatabaseFile;
             Directory.CreateDirectory(BasePath);
         }
 

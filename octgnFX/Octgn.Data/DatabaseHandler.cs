@@ -14,10 +14,21 @@ namespace Octgn.Data
         private static Dictionary<string, List<string>> columnCache = new Dictionary<string, List<string>>();
         private static string suffix = "oldtable";
 
-		public static string BasePath = SimpleConfig.DataDirectory;
-		private static readonly string DatabasePath = Path.Combine(BasePath, "Database");
-		private static readonly string DatabaseFile = Path.Combine(DatabasePath, "master.db3");
-		private static readonly string ConString = "URI=file:" + DatabaseFile;
+		public static string BasePath;
+
+        private static readonly string DatabasePath;
+
+        private static readonly string DatabaseFile;
+
+        private static readonly string ConString;
+
+        static DatabaseHandler()
+        {
+            BasePath = new SimpleConfig().DataDirectory;
+            DatabasePath = Path.Combine(BasePath, "Database");
+            DatabaseFile = Path.Combine(DatabasePath, "master.db3");
+            ConString = "URI=file:" + DatabaseFile;
+        }
 
 		public static string GetUser(string jid)
 		{
