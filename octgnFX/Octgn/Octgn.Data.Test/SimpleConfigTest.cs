@@ -12,6 +12,7 @@ namespace Octgn.Data.Test
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO.Abstractions;
     using System.IO.Abstractions.TestingHelpers;
 
@@ -65,6 +66,15 @@ namespace Octgn.Data.Test
             sconf = new SimpleConfig { FileSystem = mockFileSystem };
             Assert.Equal(settingsPath, sconf.SettingsPath);
             Assert.True(mockFileSystem.Directory.Exists(settingsDirPath));
+        }
+
+        [Fact]
+        public void OpenAndClose()
+        {
+            var conf = new SimpleConfig { FileSystem = new MockFileSystem(new Dictionary<string, MockFileData>()) };
+            var conf2 = new SimpleConfig { FileSystem = conf.FileSystem };
+            Assert.True(conf.Open());
+            Assert.False(conf2.Open());
         }
 
         /// <summary>
