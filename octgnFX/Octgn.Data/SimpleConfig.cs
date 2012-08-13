@@ -13,36 +13,47 @@ namespace Octgn.Data
     using System.Collections;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.IO.Abstractions;
 
     /// <summary>
     /// The simple config.
     /// </summary>
-    public  class SimpleConfig
+    public class SimpleConfig : ISimpleConfig
     {
         /// <summary>
-        /// File System object.
+        /// The lock object.
         /// </summary>
-        private readonly IFileSystem fileSystem;
+        private readonly object lockObject = new Object();
+
+        /// <summary>
+        /// The internal settings hashtable.
+        /// </summary>
+        private Hashtable settings = new Hashtable();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleConfig"/> class.
         /// </summary>
         public SimpleConfig()
-            : this(new FileSystem())
         {
+            this.FileSystem = new FileSystem();
+            this.SharpSerializer = new MockableSharpSerializer();
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleConfig"/> class.
+        /// Gets or sets File System object.
         /// </summary>
-        /// <param name="fileSystem">
-        /// The file system.
-        /// </param>
-        public SimpleConfig(IFileSystem fileSystem)
-        {
-            this.fileSystem = fileSystem;
-        }
+        public IFileSystem FileSystem { get; set; }
+
+        /// <summary>
+        /// Gets or sets the MockableSharpSerializer.
+        /// </summary>
+        public MockableSharpSerializer SharpSerializer { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the settings are open.
+        /// </summary>
+        public bool IsOpen { get; private set; }
 
         /// <summary>
         /// Gets the base directory for all OCTGN user data.
@@ -62,12 +73,12 @@ namespace Octgn.Data
         {
             get
             {
-                return (string)this.ReadValue("datadirectory", System.IO.Path.Combine(this.BaseDirectory, "Octgn"));
+                return (string)this.Get("datadirectory", System.IO.Path.Combine(this.BaseDirectory, "Octgn"));
             }
 
             set
             {
-                this.WriteValue("datadirectory", value);
+                this.Set("datadirectory", value);
             }
         }
 
@@ -81,12 +92,81 @@ namespace Octgn.Data
                 var p = System.IO.Path.Combine(this.BaseDirectory, "Config");
                 var fullPath = System.IO.Path.Combine(p, "settings.xml");
 
-                if (!this.fileSystem.Directory.Exists(p))
+                if (!this.FileSystem.Directory.Exists(p))
                 {
-                    this.fileSystem.Directory.CreateDirectory(p);
+                    this.FileSystem.Directory.CreateDirectory(p);
                 }
 
                 return fullPath;                
+            }
+        }
+
+        /// <summary>
+        /// Open the config file and load it's settings.
+        /// </summary>
+        /// <returns>
+        /// The System.Boolean.
+        /// </returns>
+        public bool Open()
+        {
+            lock (this.lockObject)
+            {
+                this.settings = new Hashtable();
+                try
+                {
+                    using (
+                        var stream = this.FileSystem.File.Open(
+                            this.SettingsPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        this.settings = (Hashtable)this.SharpSerializer.Deserialize(stream);
+                    }
+                }
+                catch (IOException e)
+                {
+                    this.settings = new Hashtable();
+                    return false;
+                }
+                catch
+                {
+                    this.settings = new Hashtable();
+                }
+
+                this.IsOpen = true;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// The save and close the config file.
+        /// </summary>
+        /// <returns>
+        /// The System.Boolean.
+        /// </returns>
+        public bool SaveAndClose()
+        {
+            lock (this.lockObject)
+            {
+                if (!this.IsOpen)
+                {
+                    return false;
+                }
+
+                try
+                {
+                    using (var stream = this.FileSystem.File.Open(this.SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        this.SharpSerializer.Serialize(this.settings, stream);
+                    }
+                }
+                catch (IOException e)
+                {
+                    return false;
+                }
+                catch
+                {
+                }
+                this.IsOpen = false;
+                return true;
             }
         }
 
@@ -96,50 +176,36 @@ namespace Octgn.Data
         /// <param name="valName"> The name of the value </param>
         /// <param name="d">Default value if value isn't in settings file</param>
         /// <returns> A string value </returns>
-        public object ReadValue(string valName, object d)
+        public object Get(string valName, object d)
         {
-            try
+            lock (this.lockObject)
             {
-                if (this.fileSystem.File.Exists(this.SettingsPath))
+                if (!this.IsOpen)
                 {
-                    var serializer = new SharpSerializerWrapper();
-                    var config = (Hashtable)serializer.Deserialize(this.SettingsPath);
-                    if (config.ContainsKey(valName))
-                    {
-                        return config[valName];
-                    }
+                    throw new InvalidOperationException("Config isn't open.");
                 }
+                return this.settings[valName] ?? d;
             }
-            catch (Exception e)
-            {
-                Trace.WriteLine("[SimpleConfig]ReadValue Error: " + e.Message);
-            }
-
-            return d;
         }
 
         /// <summary>
-        ///   Writes a string value to the Octgn registry
+        /// Writes a string value to the Octgn registry
         /// </summary>
-        /// <param name="valName"> Name of the value </param>
-        /// <param name="value"> String to write for value </param>
-        public void WriteValue(string valName, object value)
+        /// <param name="valName">
+        /// Name of the value 
+        /// </param>
+        /// <param name="value">
+        /// String to write for value 
+        /// </param>
+        public void Set(string valName, object value)
         {
-            try
+            lock (this.lockObject)
             {
-                var serializer = new SharpSerializerWrapper();
-                var config = new Hashtable();
-                if (this.fileSystem.File.Exists(this.SettingsPath))
+                if (!this.IsOpen)
                 {
-                    config = (Hashtable)serializer.Deserialize(this.SettingsPath);
+                    throw new InvalidOperationException("Config isn't open.");
                 }
-
-                config[valName] = value;
-                serializer.Serialize(config, this.SettingsPath);
-            }
-            catch (Exception e)
-            {
-                Trace.WriteLine("[SimpleConfig]WriteValue Error: " + e.Message);
+                this.settings[valName] = value;
             }
         }
     }

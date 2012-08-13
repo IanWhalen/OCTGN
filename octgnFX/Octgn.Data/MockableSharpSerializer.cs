@@ -1,19 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Polenter.Serialization;
-using Polenter.Serialization.Advanced;
-using Polenter.Serialization.Advanced.Deserializing;
-using Polenter.Serialization.Advanced.Serializing;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="MockSharpSerializer.cs" company="OCTGN">
+//   Non-Profit Open Software License 3.0 (NPOSL-3.0)
+// </copyright>
+// <summary>
+//   Defines the MockSharpSerializer type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Data
 {
-    public class SharpSerializerWrapper
+    using System.IO;
+
+    using Polenter.Serialization;
+    using Polenter.Serialization.Advanced;
+    using Polenter.Serialization.Advanced.Deserializing;
+    using Polenter.Serialization.Advanced.Serializing;
+
+    /// <summary>
+    /// The mock sharp serializer.
+    /// </summary>
+    public class MockableSharpSerializer 
     {
-        private SharpSerializer _serializer;
+        /// <summary>
+        /// The real SharpSerializer.
+        /// </summary>
+        private readonly SharpSerializer serializer;
 
         #region SharpSerializer
 
@@ -21,54 +32,54 @@ namespace Octgn.Data
         ///   Default it is an instance of PropertyProvider. It provides all properties to serialize.
         ///   You can use an Ihneritor and overwrite its GetAllProperties and IgnoreProperty methods to implement your custom rules.
         /// </summary>
-        public PropertyProvider PropertyProvider
+        public virtual PropertyProvider PropertyProvider
         {
-            get { return _serializer.PropertyProvider; }
-            set { _serializer.PropertyProvider = value; }
+            get { return this.serializer.PropertyProvider; }
+            set { this.serializer.PropertyProvider = value; }
         }
 
         /// <summary>
         ///   What name should have the root property. Default is "Root".
         /// </summary>
-        public string RootName
+        public virtual string RootName
         {
-            get { return _serializer.RootName; }
-            set { _serializer.RootName = value; }
+            get { return this.serializer.RootName; }
+            set { this.serializer.RootName = value; }
         }
 
         /// <summary>
         ///   Standard Constructor. Default is Xml serializing
         /// </summary>
-        public SharpSerializerWrapper()
+        public MockableSharpSerializer()
         {
-            _serializer = new SharpSerializer();
+            this.serializer = new SharpSerializer();
         }
 
         /// <summary>
         ///   Overloaded constructor
         /// </summary>
         /// <param name = "binarySerialization">true - binary serialization with SizeOptimized mode, false - xml. For more options use other overloaded constructors.</param>
-        public SharpSerializerWrapper(bool binarySerialization)
+        public MockableSharpSerializer(bool binarySerialization)
         {
-            _serializer = new SharpSerializer(binarySerialization);
+            this.serializer = new SharpSerializer(binarySerialization);
         }
 
         /// <summary>
         ///   Xml serialization with custom settings
         /// </summary>
         /// <param name = "settings"></param>
-        public SharpSerializerWrapper(SharpSerializerXmlSettings settings)
+        public MockableSharpSerializer(SharpSerializerXmlSettings settings)
         {
-            _serializer = new SharpSerializer(settings);
+            this.serializer = new SharpSerializer(settings);
         }
 
         /// <summary>
         ///   Binary serialization with custom settings
         /// </summary>
         /// <param name = "settings"></param>
-        public SharpSerializerWrapper(SharpSerializerBinarySettings settings)
+        public MockableSharpSerializer(SharpSerializerBinarySettings settings)
         {
-            _serializer = new SharpSerializer(settings);
+            this.serializer = new SharpSerializer(settings);
         }
 
         /// <summary>
@@ -76,9 +87,9 @@ namespace Octgn.Data
         /// </summary>
         /// <param name = "serializer"></param>
         /// <param name = "deserializer"></param>
-        public SharpSerializerWrapper(IPropertySerializer serializer, IPropertyDeserializer deserializer)
+        public MockableSharpSerializer(IPropertySerializer serializer, IPropertyDeserializer deserializer)
         {
-            _serializer = new SharpSerializer(serializer, deserializer);
+            this.serializer = new SharpSerializer(serializer, deserializer);
         }
 
         /// <summary>
@@ -86,9 +97,9 @@ namespace Octgn.Data
         /// </summary>
         /// <param name = "data"></param>
         /// <param name = "filename"></param>
-        public void Serialize(object data, string filename)
+        public virtual void Serialize(object data, string filename)
         {
-            _serializer.Serialize(data,filename);
+            this.serializer.Serialize(data,filename);
         }
 
         /// <summary>
@@ -96,9 +107,9 @@ namespace Octgn.Data
         /// </summary>
         /// <param name = "data"></param>
         /// <param name = "stream"></param>
-        public void Serialize(object data, Stream stream)
+        public virtual void Serialize(object data, Stream stream)
         {
-            _serializer.Serialize(data,stream);
+            this.serializer.Serialize(data,stream);
         }
 
         /// <summary>
@@ -108,7 +119,7 @@ namespace Octgn.Data
         /// <returns></returns>
         public virtual object Deserialize(string filename)
         {
-            return _serializer.Deserialize(filename);
+            return this.serializer.Deserialize(filename);
         }
 
         /// <summary>
@@ -116,9 +127,9 @@ namespace Octgn.Data
         /// </summary>
         /// <param name = "stream"></param>
         /// <returns></returns>
-        public object Deserialize(Stream stream)
+        public virtual object Deserialize(Stream stream)
         {
-            return _serializer.Deserialize(stream);
+            return this.serializer.Deserialize(stream);
         }
 
         #endregion

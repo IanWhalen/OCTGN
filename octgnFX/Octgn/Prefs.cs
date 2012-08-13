@@ -7,20 +7,38 @@ namespace Octgn
 {
     public static class Prefs
     {
+        /// <summary>
+        /// Raw Simple Config
+        /// </summary>
+        public static SimpleConfig Config;
 
         static Prefs()
         {
+            Config = new SimpleConfig();
+            Config.Open();
+            Application.Current.Exit += (sender, args) => SaveAndClose();
+        }
+
+        /// <summary>
+        /// The save and close the config file.
+        /// </summary>
+        /// <returns>
+        /// The System.Boolean.
+        /// </returns>
+        public static bool SaveAndClose()
+        {
+            return Config.SaveAndClose();
         }
 
         public static bool InstallOnBoot
         {
             get
             {
-                return (bool)new SimpleConfig().ReadValue("InstallOnBoot", true);
+                return (bool)Config.Get("InstallOnBoot", true);
             }
             set
             {
-                new SimpleConfig().WriteValue("InstallOnBoot", value);
+                Config.Set("InstallOnBoot", value);
             }
         }
 
@@ -28,48 +46,48 @@ namespace Octgn
         {
             get
             {
-                return (bool)new SimpleConfig().ReadValue("CleanDatabase", true);
+                return (bool)Config.Get("CleanDatabase", true);
             }
             set
             {
-                new SimpleConfig().WriteValue("CleanDatabase", value);
+                Config.Set("CleanDatabase", value);
             }
         }
 
         public static string Password
         {
-            get { return (string)new SimpleConfig().ReadValue("Password" , ""); }
+            get { return (string)Config.Get("Password" , ""); }
             set
             {
-                new SimpleConfig().WriteValue("Password",value);
+                Config.Set("Password",value);
             }
         }
 
         public static string Username
         {
-            get { return (string)new SimpleConfig().ReadValue("Username", ""); }
+            get { return (string)Config.Get("Username", ""); }
             set
             {
-                new SimpleConfig().WriteValue("Username", value);
+                Config.Set("Username", value);
             }
         }        
 
         public static bool getFilterGame(string name)
         {
-            return (bool)new SimpleConfig().ReadValue("FilterGames_" + name, true);
+            return (bool)Config.Get("FilterGames_" + name, true);
         }
         
         public static void setFilterGame(string name, bool value)
         {
-            new SimpleConfig().WriteValue("FilterGames_" + name, value);
+            Config.Set("FilterGames_" + name, value);
         }
 
         public static string Nickname
         {
-            get { return (string)new SimpleConfig().ReadValue("Nickname" , null); }
+            get { return (string)Config.Get("Nickname" , null); }
             set
             {
-                new SimpleConfig().WriteValue("Nickname",value);
+                Config.Set("Nickname",value);
             }
         }
 
@@ -77,21 +95,21 @@ namespace Octgn
         {
             get
             {
-                return (string)new SimpleConfig().ReadValue("lastFolder" ,"");
+                return (string)Config.Get("lastFolder" ,"");
 
             }
             set
             {
-                new SimpleConfig().WriteValue("lastFolder",value);
+                Config.Set("lastFolder",value);
             }
         }
 
         public static bool HideLoginNotifications
         {
-            get { return (bool)new SimpleConfig().ReadValue("Options_HideLoginNotifications",false); }
+            get { return (bool)Config.Get("Options_HideLoginNotifications",false); }
             set
             {
-                new SimpleConfig().WriteValue("Options_HideLoginNotifications", value);
+                Config.Set("Options_HideLoginNotifications", value);
             }
         }
         
@@ -103,10 +121,10 @@ namespace Octgn
 
         public static string LastRoomName
         {
-            get { return (string)new SimpleConfig().ReadValue("lastroomname" , Skylabs.Lobby.Randomness.RandomRoomName()); }
+            get { return (string)Config.Get("lastroomname" , Skylabs.Lobby.Randomness.RandomRoomName()); }
             set
             {
-                new SimpleConfig().WriteValue("lastroomname",value);
+                Config.Set("lastroomname",value);
             }
         }
         
@@ -114,11 +132,11 @@ namespace Octgn
         {
             get
             {
-                return (bool) new SimpleConfig().ReadValue("twosidedtable", true);
+                return (bool) Config.Get("twosidedtable", true);
             }
             set
             {
-                new SimpleConfig().WriteValue("twosidedtable",value.ToString(CultureInfo.InvariantCulture));
+                Config.Set("twosidedtable",value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -126,14 +144,14 @@ namespace Octgn
         {
             get
             {
-                var y = (double)new SimpleConfig().ReadValue("LoginTopLoc", 100);
-                var x = (double) new SimpleConfig().ReadValue("LoginLeftLoc", 100);
+                var y = (double)Config.Get("LoginTopLoc", 100);
+                var x = (double) Config.Get("LoginLeftLoc", 100);
                 return new Point(x, y);
             }
             set
             {
-                new SimpleConfig().WriteValue("LoginTopLoc", value);
-                new SimpleConfig().WriteValue("LoginLeftLoc", value);
+                Config.Set("LoginTopLoc", value);
+                Config.Set("LoginLeftLoc", value);
             }
         }
 
@@ -141,14 +159,14 @@ namespace Octgn
         {
             get
             {
-                var y = (double)new SimpleConfig().ReadValue("MainTopLoc", 100);
-                var x = (double)new SimpleConfig().ReadValue("MainLeftLoc", 100);
+                var y = (double)Config.Get("MainTopLoc", 100);
+                var x = (double)Config.Get("MainLeftLoc", 100);
                 return new Point(x, y);
             }
             set
             {
-                new SimpleConfig().WriteValue("MainTopLoc", value);
-                new SimpleConfig().WriteValue("MainLeftLoc", value);
+                Config.Set("MainTopLoc", value);
+                Config.Set("MainLeftLoc", value);
             }
         } 
     }

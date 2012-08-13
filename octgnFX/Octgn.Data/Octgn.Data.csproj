@@ -162,6 +162,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="GamesRepository.cs" />
+    <Compile Include="ISimpleConfig.cs" />
     <Compile Include="MarkerModel.cs" />
     <Compile Include="Pack.cs" />
     <Compile Include="Patch.cs" />
@@ -173,7 +174,7 @@
     </Compile>
     <Compile Include="PropertyDef.cs" />
     <Compile Include="Set.cs" />
-    <Compile Include="SharpSerializerWrapper.cs" />
+    <Compile Include="MockableSharpSerializer.cs" />
     <Compile Include="SimpleConfig.cs" />
     <Compile Include="SimpleDataTableCache.cs" />
     <Compile Include="UpdateDatabase.cs" />
