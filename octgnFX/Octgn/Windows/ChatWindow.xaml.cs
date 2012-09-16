@@ -58,13 +58,13 @@ namespace Octgn.Windows
 
         }
 
-        private void RoomOnOnMessageRecieved(object sender , NewUser from , string message, DateTime rTime, Client.LobbyMessageType mType)
+        private void RoomOnOnMessageRecieved(object sender , NewUser from , string message, DateTime rTime, LobbyMessageType mType)
         {
             Dispatcher.Invoke(new Action(()=>
                 {
                     switch(mType)
                     {
-                        case Client.LobbyMessageType.Standard:
+                        case LobbyMessageType.Standard:
                         {
                             Brush b = _bOtherColor;
 
@@ -77,7 +77,7 @@ namespace Octgn.Windows
                                && Program.LobbyClient.Me.Status != UserStatus.DoNotDisturb && !IsLobbyChat) Show();
                             break;
                         }
-                        case Client.LobbyMessageType.Topic:
+                        case LobbyMessageType.Topic:
                         {
                             Run r = new Run("");
                             r.Foreground = _bTopicColor;
@@ -85,7 +85,7 @@ namespace Octgn.Windows
                             AddChatText(r, message, _bTopicColor, _bTopicBackColor);
                             break;
                         }
-                        case Client.LobbyMessageType.Error:
+                        case LobbyMessageType.Error:
                         {
                             Run r = new Run("");
                             r.Foreground = _bErrorColor;
@@ -349,7 +349,7 @@ namespace Octgn.Windows
             if (textBox1.Text.Trim().Length <= 0) return;
             Room.SendMessage(textBox1.Text);
             if(!Room.IsGroupChat && textBox1.Text[0] != '/')
-                RoomOnOnMessageRecieved(this,Program.LobbyClient.Me,textBox1.Text,DateTime.Now,Client.LobbyMessageType.Standard);
+                RoomOnOnMessageRecieved(this,Program.LobbyClient.Me,textBox1.Text,DateTime.Now,LobbyMessageType.Standard);
             //Program.LobbyClient.Chatting.SendChatMessage(Id, textBox1.Text);
             textBox1.Text = "";
         }

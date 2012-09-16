@@ -26,9 +26,9 @@ namespace Octgn.Launcher
             LazyAsync.Invoke(RefreshList);
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender, Client.DataRecType type, object data)
+        private void LobbyClientOnOnDataRecieved(object sender, DataRecType type, object data)
         {
-            if (type == Client.DataRecType.FriendList)
+            if (type == DataRecType.FriendList)
             {
                 RefreshList();
             }

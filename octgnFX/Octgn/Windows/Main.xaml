@@ -25,7 +25,7 @@
             </TabItem>
             <TabItem x:Name="TabLobby" Header="Lobby Chat">
             </TabItem>
-            <TabItem Header="Custom Games">
+            <TabItem x:Name="TabCustomGames" Header="Custom Games">
             </TabItem>
             <TabItem Header="Matchmaking(Comming Soon)" IsEnabled="false">
             </TabItem>

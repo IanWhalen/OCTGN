@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -12,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Octgn.Controls;
 using Skylabs.Lobby;
+using agsXMPP;
 
 namespace Octgn.Windows
 {
@@ -48,27 +50,32 @@ namespace Octgn.Windows
             ConnectBox.Visibility = Visibility.Hidden;
             Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClientOnOnStateChanged;
             Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnOnLoginComplete;
+            this.Closing += OnClosing;
+        }
+
+        private void OnClosing(object sender, CancelEventArgs cancelEventArgs)
+        {
+            Program.OctgnInstance.Close();
         }
 
         #region LobbyEvents
 
-        private void LobbyClientOnOnStateChanged(object sender, string state)
+        private void LobbyClientOnOnStateChanged(object sender, agsXMPP.XmppConnectionState state)
         {
-            ConnectMessage = state;
+            ConnectMessage = state == XmppConnectionState.Disconnected ? "" : state.ToString();
+            if(state == XmppConnectionState.Disconnected)
+                SetStateOffline();
         }
 
-        private void LobbyClientOnOnLoginComplete(object sender, Client.LoginResults results)
+        private void LobbyClientOnOnLoginComplete(object sender, LoginResults results)
         {
+            Dispatcher.BeginInvoke(new Action(()=>ConnectBox.Visibility = Visibility.Hidden));
             switch (results)
             {
-                case Client.LoginResults.ConnectionError:
-                    SetStateOffline();
-                    break;
-                case Client.LoginResults.Success:
-                    Dispatcher.BeginInvoke(new Action(()=>ConnectBox.Visibility = Visibility.Hidden));
+                case LoginResults.Success:
                     SetStateOnline();
                     break;
-                case Client.LoginResults.Failure:
+                default:
                     SetStateOffline();
                     break;
             }
@@ -80,6 +87,11 @@ namespace Octgn.Windows
 
         private void SetStateOffline()
         {
+            Dispatcher.BeginInvoke(new Action(() => { 
+                TabLobby.IsEnabled = false;
+                TabCustomGames.IsEnabled = false;
+                TabMain.Focus();
+            }));
             //Must be wrapped in a dispatcher
         }
         
@@ -90,7 +102,10 @@ namespace Octgn.Windows
 
         private void SetStateOnline()
         {
-            //Must be wrapped in a dispatcher
+            Dispatcher.BeginInvoke(new Action(() => { 
+                TabLobby.IsEnabled = true ;
+                TabCustomGames.IsEnabled = true;
+            }));
         }
 
         #endregion 

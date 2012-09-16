@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using Octgn.Data;
 using agsXMPP;
@@ -15,22 +16,23 @@ using agsXMPP.protocol.iq.agent;
 using agsXMPP.protocol.iq.register;
 using agsXMPP.protocol.iq.roster;
 using agsXMPP.protocol.iq.vcard;
+using agsXMPP.protocol.sasl;
 using agsXMPP.protocol.x.muc;
 
 namespace Skylabs.Lobby
 {
+    #region Enums
+        public enum RegisterResults{ConnectionError,Success,UsernameTaken,UsernameInvalid,PasswordFailure}
+        public enum LoginResults{ConnectionError,Success,Failure, FirewallError, AuthError}
+        public enum DataRecType{FriendList,MyInfo,GameList,HostedGameReady,GamesNeedRefresh,Announcement}
+        public enum LoginResult{Success,Failure,Banned,WaitingForResponse};
+        public enum LobbyMessageType { Standard, Error, Topic };
+    #endregion
     public class Client
     {
-        #region Enums
-            public enum RegisterResults{ConnectionError,Success,UsernameTaken,UsernameInvalid,PasswordFailure}
-            public enum LoginResults{ConnectionError,Success,Failure}
-            public enum DataRecType{FriendList,MyInfo,GameList,HostedGameReady,GamesNeedRefresh,Announcement}
-            public enum LoginResult{Success,Failure,Banned,WaitingForResponse};
-            public enum LobbyMessageType { Standard, Error, Topic };
-        #endregion
         #region Delegates
             public delegate void dRegisterComplete(object sender, RegisterResults results);
-            public delegate void dStateChanged(object sender, string state);
+            public delegate void dStateChanged(object sender, XmppConnectionState state);
             public delegate void dFriendRequest(object sender, Jid user);
             public delegate void dLoginComplete(object sender, LoginResults results);
             public delegate void dDataRecieved(object sender, DataRecType type, object data);
@@ -49,6 +51,7 @@ namespace Skylabs.Lobby
             private Presence myPresence;
             private List<HostedGameData> _games;
             private string _email;
+            private bool _loggingIng;
         #endregion
 
         public List<Notification> Notifications { get; set; }
@@ -67,7 +70,7 @@ namespace Skylabs.Lobby
 #if(!DEBUG)
     	public const string Host = "server.octgn.info";
 #else
-		public const string Host = "server.octgn.info";
+        public const string Host = "server.octgn.info";
 #endif
 
         public UserStatus Status
@@ -115,6 +118,7 @@ namespace Skylabs.Lobby
             Xmpp.OnError += XmppOnOnError;
             Xmpp.OnSocketError += XmppOnOnSocketError;
             Xmpp.OnStreamError += XmppOnOnStreamError;
+            Xmpp.OnReadSocketData += XmppOnOnReadSocketData;
             Notifications = new List<Notification>();
             Friends = new List<NewUser>();
             //GroupChats = new List<NewUser>();
@@ -127,6 +131,12 @@ namespace Skylabs.Lobby
 
         #region XMPP
 
+        private void XmppOnOnReadSocketData(object sender, byte[] data, int count)
+        {
+#if(DEBUG)
+            Trace.WriteLine("[Xmpp]RAWin: " + Encoding.ASCII.GetString(data));
+#endif
+        }
 
         private void XmppOnOnStreamError(object sender, Element element)
         {
@@ -141,7 +151,19 @@ namespace Skylabs.Lobby
 
         private void XmppOnOnSocketError(object sender, Exception exception)
         {
-            Trace.WriteLine("[Xmpp]SocketError: " + exception.Message);
+            var se = exception as SocketException;
+            if(se != null)
+            {
+                if (_loggingIng)
+                    FireLoginComplete(se.ErrorCode == 10013 ? LoginResults.FirewallError : LoginResults.ConnectionError);
+            }
+            else if(exception is ConnectTimeoutException)
+            {
+                if(_loggingIng)
+                    FireLoginComplete(LoginResults.ConnectionError);
+            }
+            else
+                Trace.WriteLine("[Xmpp]SocketError: " + exception.Message);
         }
 
         private void XmppOnOnError(object sender, Exception exception)
@@ -170,8 +192,6 @@ namespace Skylabs.Lobby
 
         private void XmppOnOnIq(object sender, IQ iq)
         {
-            if(iq.Error != null && iq.Error.Code == ErrorCode.NotAllowed)
-                if(OnLoginComplete != null)OnLoginComplete.Invoke(this,LoginResults.Failure);
             if(iq.Type == IqType.result)
             {
                 if (iq.Vcard != null)
@@ -395,8 +415,7 @@ namespace Skylabs.Lobby
 
         private void XmppOnOnAuthError(object sender, Element element)
         {
-            if(OnLoginComplete != null)
-                OnLoginComplete.Invoke(this,LoginResults.Failure);
+            FireLoginComplete(LoginResults.AuthError);
             Trace.WriteLine("[XMPP]AuthError: Closing...");
             Xmpp.Close();
         }
@@ -412,17 +431,18 @@ namespace Skylabs.Lobby
             Me = new NewUser(Xmpp.MyJID);
 			Me.SetStatus(UserStatus.Online);
 			Xmpp.PresenceManager.Subscribe(Xmpp.MyJID);
-            if(OnLoginComplete != null)
-                OnLoginComplete.Invoke(this,LoginResults.Success);
+            FireLoginComplete(LoginResults.Success);
         }
 
         private void XmppOnOnXmppConnectionStateChanged(object sender, XmppConnectionState state)
         {
             Trace.WriteLine("[Xmpp]State: " + state.ToString());
             if (OnStateChanged != null)
-                OnStateChanged.Invoke(this, state.ToString());
-            if(state == XmppConnectionState.Disconnected)
-                if(OnDisconnect != null)OnDisconnect.Invoke(this,null);
+                OnStateChanged.Invoke(this, state);
+            if (state == XmppConnectionState.Disconnected)
+            {
+                if (OnDisconnect != null) OnDisconnect.Invoke(this, null);
+            }
         }
 
         private void XmppOnOnRegisterError(object sender, Element element)
@@ -451,18 +471,30 @@ namespace Skylabs.Lobby
                 OnRegisterComplete.Invoke(this,RegisterResults.Success);
         }
 
-        #endregion 
-
         public void Send(Element e)
         {
             Xmpp.Send(e);
         }
-        
+
         public void Send(string s)
         {
             Xmpp.Send(s);
         }
-        
+
+        #endregion 
+
+        #region Event Callers
+
+        private void FireLoginComplete(LoginResults result)
+        {
+            if(OnLoginComplete != null)
+                OnLoginComplete.Invoke(this,result);
+        }
+
+        #endregion
+
+        #region Login Register
+
         public void BeginLogin(string username, string password)
         {
             if (Xmpp.XmppConnectionState == XmppConnectionState.Disconnected)
@@ -478,6 +510,7 @@ namespace Skylabs.Lobby
                 Xmpp.Priority = 1;
                 Xmpp.SocketConnectionType = SocketConnectionType.Direct;
                 Xmpp.UseSSL = false;
+                _loggingIng = true;
                 Xmpp.Open();
             }
         }
@@ -496,6 +529,8 @@ namespace Skylabs.Lobby
             }
         }
 
+        #endregion
+
         public void BeginHostGame(Game game, string gamename)
         {
             var data = String.Format("{0},:,{1},:,{2}",game.Id.ToString(),game.Version.ToString(),gamename);
@@ -513,24 +548,8 @@ namespace Skylabs.Lobby
 
         public void BeginReconnect()
         {
-            //Xmpp.Close();
             RebuildXmpp();
             BeginLogin(Username,Password);
-            /*
-            switch(Xmpp.XmppConnectionState)
-            {
-                case XmppConnectionState.Disconnected:
-                    myPresence.Type = PresenceType.available;
-                    Xmpp.Open();
-                    Trace.WriteLine("[Xmpp]Reconnect: Opening");
-                    break;
-                default:
-                    Trace.WriteLine("[Xmpp]Reconnect: Closing");
-                    Xmpp.Close();
-                    Xmpp.SocketDisconnect();
-                    Xmpp.ClientSocket.Disconnect();
-                    break;
-            }*/
         }
 
         public void AcceptFriendship(Jid user)
@@ -620,6 +639,12 @@ namespace Skylabs.Lobby
             Xmpp.Send(m);
         }
         
+        public void LogOut()
+        {
+            Trace.WriteLine("[Lobby]Log out called.");
+            Stop();
+        }
+
         public void Stop()
         {
             Trace.WriteLine("[Lobby]Stop Called.");

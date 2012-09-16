@@ -44,9 +44,9 @@ namespace Octgn.Launcher
         }
 
 
-        private void LobbyClientOnOnDataRecieved(object sender , Skylabs.Lobby.Client.DataRecType type , object data)
+        private void LobbyClientOnOnDataRecieved(object sender , Skylabs.Lobby.DataRecType type , object data)
         {
-            if (type == Skylabs.Lobby.Client.DataRecType.HostedGameReady)
+            if (type == Skylabs.Lobby.DataRecType.HostedGameReady)
             {
                 var port = data as Int32?;
                 if (port != null)

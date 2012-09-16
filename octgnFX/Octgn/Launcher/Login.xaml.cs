@@ -18,13 +18,13 @@ using Octgn.Extentions;
 using Skylabs.Lobby;
 using Octgn.Definitions;
 using Skylabs.Lobby.Threading;
+using agsXMPP;
 using Client = Octgn.Networking.Client;
 using Octgn.Data;
-using Application = System.Windows.Application;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.MessageBox;
-using Timer = System.Threading.Timer;
+using Uri = System.Uri;
 
 namespace Octgn.Launcher
 {
@@ -34,7 +34,6 @@ namespace Octgn.Launcher
     public partial class Login
     {
         private bool _isLoggingIn;
-        private Timer _loginTimer;
         private bool _inLoginDone = false;
         public Login()
         {
@@ -48,7 +47,21 @@ namespace Octgn.Launcher
             }
             textBox1.Text = Prefs.Username;
             Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnLoginComplete;
+            Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClient_OnStateChanged;
             LazyAsync.Invoke(GetTwitterStuff);
+        }
+
+        void LobbyClient_OnStateChanged(object sender, agsXMPP.XmppConnectionState state)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+                                                  {
+                                                      if (state == XmppConnectionState.Disconnected)
+                                                      {
+                                                          spLogin.Visibility = Visibility.Visible;
+                                                          spLogin.IsEnabled = true;
+                                                      }
+                                                  }));
+            
         }
 
         #region News Feed
@@ -168,75 +181,64 @@ namespace Octgn.Launcher
         #endregion
 
         #region LoginStuff
-            void LobbyClientOnLoginComplete(object sender, Skylabs.Lobby.Client.LoginResults results)
+            void LobbyClientOnLoginComplete(object sender, Skylabs.Lobby.LoginResults results)
             {
-                
+
+                var mess = "";
                 switch (results)
                 {
-                    case Skylabs.Lobby.Client.LoginResults.ConnectionError:
-                        _isLoggingIn = false;
-                        DoErrorMessage("Could not connect to the server.");
-
+                    case LoginResults.ConnectionError:
+                        mess = "Could not connect to the server.";
                         break;
-                    case Skylabs.Lobby.Client.LoginResults.Success:
-                        LoginFinished(Skylabs.Lobby.Client.LoginResult.Success, DateTime.Now,"");
+                    case LoginResults.Success:
+                        mess = "";
                         break;
-                    case Skylabs.Lobby.Client.LoginResults.Failure:
-                        LoginFinished(Skylabs.Lobby.Client.LoginResult.Failure, DateTime.Now,"Username/Password Incorrect.");
+                    case LoginResults.Failure:
+                        mess = "Unknown failure.";
+                        break;
+                    case LoginResults.FirewallError:
+                        mess = "This program is being blocked by a firewall on your pc.";
+                        break;
+                    case LoginResults.AuthError:
+                        mess = "Your username or password was incorrect.";
                         break;
                 }
                 _isLoggingIn = false;
+                LoginFinished(results, mess);
             }
 
             private void DoLogin()
             {
                 if (_isLoggingIn) return;
-                _loginTimer =
-                    new Timer(
-                        o =>
-                        {
-                            Program.OctgnInstance.LobbyClient.Stop();
-                            LoginFinished(Skylabs.Lobby.Client.LoginResult.Failure , DateTime.Now ,
-                                          "Please try again.");
-                        } ,
-                        null , 10000 , System.Threading.Timeout.Infinite);
+                spLogin.IsEnabled = false;
                 _isLoggingIn = true;
                 lError.Visibility = Visibility.Hidden;
                 Program.OctgnInstance.LobbyClient.BeginLogin(textBox1.Text,passwordBox1.Password);
             }
 
-            private void LoginFinished(Skylabs.Lobby.Client.LoginResult success, DateTime banEnd, string message)
+            private void LoginFinished(LoginResults success, string message)
             {
                 if (_inLoginDone) return;
                 _inLoginDone = true;
                 Trace.TraceInformation("Login finished.");
-                if (_loginTimer != null)
-                {
-                    _loginTimer.Dispose();
-                    _loginTimer = null;
-                }
-                Dispatcher.Invoke((Action) (() =>
-                                                {
+                Dispatcher.BeginInvoke((Action) (() =>
+                                                     {
+                                                    spLogin.IsEnabled = true;
                                                     _isLoggingIn = false;
                                                     switch (success)
                                                     {
-                                                        case Skylabs.Lobby.Client.LoginResult.Success:
+                                                        case LoginResults.Success:
                                                             Prefs.Password = cbSavePassword.IsChecked == true
                                                                                  ? passwordBox1.Password.Encrypt()
                                                                                  : "";
                                                             Prefs.Username = textBox1.Text;
                                                             Prefs.Nickname = textBox1.Text;
-                                                            Program.MainWindow = new Windows.Main();
-                                                            Program.MainWindow.Show();
-                                                            Application.Current.MainWindow = Program.MainWindow;
+                                                            spLogin.Visibility = Visibility.Hidden;
                                                             break;
-                                                        case Skylabs.Lobby.Client.LoginResult.Banned:
-                                                            DoErrorMessage("You have been banned until " +
-                                                                           banEnd.ToShortTimeString() + " on " +
-                                                                           banEnd.ToShortDateString());
-                                                            break;
-                                                        case Skylabs.Lobby.Client.LoginResult.Failure:
-                                                            DoErrorMessage("Login Failed: " + message);
+                                                        default:
+                                                            DoErrorMessage(message);
+                                                            Program.OctgnInstance.LobbyClient.Stop();
+                                                            spLogin.Visibility = Visibility.Visible;
                                                             break;
                                                     }
                                                     _inLoginDone = false;
@@ -404,7 +406,7 @@ namespace Octgn.Launcher
         #region Window stuff
             private void PageUnloaded(object sender, RoutedEventArgs e)
             {
-                Program.OctgnInstance.LobbyClient.OnLoginComplete -= LobbyClientOnLoginComplete;
+                //Program.OctgnInstance.LobbyClient.OnLoginComplete -= LobbyClientOnLoginComplete;
             }
 
             private void PageLoaded(object sender, RoutedEventArgs e)

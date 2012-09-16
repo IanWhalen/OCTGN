@@ -20,7 +20,7 @@ namespace Skylabs.Lobby
 {
     public class NewChatRoom: IDisposable,IEquatable<NewChatRoom>,IEqualityComparer
     {
-        public delegate void dMessageReceived(object sender , NewUser from, string message, DateTime rTime,Client.LobbyMessageType mType = Client.LobbyMessageType.Standard);
+        public delegate void dMessageReceived(object sender , NewUser from, string message, DateTime rTime,LobbyMessageType mType = LobbyMessageType.Standard);
 
         public delegate void dUserListChange(object sender,List<NewUser> users );
 
@@ -114,7 +114,7 @@ namespace Skylabs.Lobby
                     break;
                 case MessageType.error:
                     if(msg.Error != null && !String.IsNullOrWhiteSpace(msg.Error.ErrorText))
-                        OnMessageRecieved.Invoke(this,new NewUser(msg.From),msg.Error.ErrorText,DateTime.Now,Client.LobbyMessageType.Error );
+                        OnMessageRecieved.Invoke(this,new NewUser(msg.From),msg.Error.ErrorText,DateTime.Now,LobbyMessageType.Error );
                     break;
                 case MessageType.chat:
                     switch(msg.Chatstate)
@@ -149,7 +149,7 @@ namespace Skylabs.Lobby
                                     OnMessageRecieved.Invoke(this,
                                                              new NewUser(
 																 new Jid(msg.From.Resource + "@" + Skylabs.Lobby.Client.Host)),
-                                                             msg.Subject, rTime,Client.LobbyMessageType.Topic);                                
+                                                             msg.Subject, rTime,LobbyMessageType.Topic);                                
                             }
                             else if (!String.IsNullOrWhiteSpace(msg.Body))
                             {

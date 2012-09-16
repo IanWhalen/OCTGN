@@ -25,11 +25,11 @@ namespace Octgn.Launcher
             Program.LobbyClient.BeginGetGameList();
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender , Client.DataRecType type , object data)
+        private void LobbyClientOnOnDataRecieved(object sender , DataRecType type , object data)
         {
-            if(type == Client.DataRecType.GameList)
+            if(type == DataRecType.GameList)
                 ReloadGameList();
-            else if (type == Client.DataRecType.GamesNeedRefresh)
+            else if (type == DataRecType.GamesNeedRefresh)
             {
                 Dispatcher.Invoke(new Action(() =>
                     {
