@@ -24,6 +24,7 @@
                 </Frame>
             </TabItem>
             <TabItem x:Name="TabLobby" Header="Lobby Chat">
+                <Launcher:LobbyChat Width="Auto" Height="Auto"/>
             </TabItem>
             <TabItem x:Name="TabCustomGames" Header="Custom Games">
             </TabItem>

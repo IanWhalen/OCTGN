@@ -74,6 +74,7 @@ namespace Octgn.Windows
             {
                 case LoginResults.Success:
                     SetStateOnline();
+                    Dispatcher.BeginInvoke(new Action(()=>TabLobby.Focus()));
                     break;
                 default:
                     SetStateOffline();

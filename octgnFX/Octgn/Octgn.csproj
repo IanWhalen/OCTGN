@@ -191,6 +191,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ChatTableRow.xaml.cs">
+      <DependentUpon>ChatTableRow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ChildWindow.cs" />
     <Compile Include="Controls\ChildWindowManager.cs" />
     <Compile Include="Controls\CircularProgressBar.xaml.cs">
@@ -224,6 +227,9 @@
     <Compile Include="Controls\TabCommands.cs" />
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Extentions\BitmapImageExtensions.cs" />
+    <Compile Include="Launcher\LobbyChat.xaml.cs">
+      <DependentUpon>LobbyChat.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Networking\IServerCalls.cs">
       <DependentUpon>IServerCalls.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -574,6 +580,7 @@
     <Resource Include="Resources\minmax.png" />
     <Resource Include="Resources\minimize.png" />
     <Resource Include="Resources\closewindow.png" />
+    <Resource Include="Resources\search.png" />
     <Content Include="Scripting\Lib\abc.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -613,6 +620,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\ChatTableRow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\CircularProgressBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -686,6 +697,10 @@
     <Page Include="Launcher\HostGameSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Launcher\LobbyChat.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Launcher\NotificationList.xaml">
       <Generator>MSBuild:Compile</Generator>
