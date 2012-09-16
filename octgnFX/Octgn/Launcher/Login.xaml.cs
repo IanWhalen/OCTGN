@@ -2,30 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Threading;
-using System.Xml;
 using LinqToTwitter;
-using Octgn.Controls;
 using Octgn.DeckBuilder;
 using Octgn.Extentions;
-using Octgn.Networking;
 using Skylabs.Lobby;
 using Octgn.Definitions;
 using Skylabs.Lobby.Threading;
@@ -44,8 +33,6 @@ namespace Octgn.Launcher
     /// </summary>
     public partial class Login
     {
-        private readonly DispatcherTimer _animationTimer;
-        private bool _bSpin;
         private bool _isLoggingIn;
         private Timer _loginTimer;
         private bool _inLoginDone = false;
@@ -53,12 +40,6 @@ namespace Octgn.Launcher
         {
             InitializeComponent();
 
-            SpinnerRotate.CenterX = image2.Width/2;
-            SpinnerRotate.CenterY = image2.Height/2;
-            _animationTimer = new DispatcherTimer(DispatcherPriority.ContextIdle, Dispatcher)
-                                  {Interval = new TimeSpan(0, 0, 0, 0, 100)};
-            versionText.Text = string.Format("Version {0}", OctgnApp.OctgnVersion.ToString(4));
-            _animationTimer.Tick += HandleAnimationTick;
             string password = Prefs.Password;
             if (password != null)
             {
@@ -66,8 +47,7 @@ namespace Octgn.Launcher
                 cbSavePassword.IsChecked = true;
             }
             textBox1.Text = Prefs.Username;
-            Program.LobbyClient.OnStateChanged += (sender , state) => UpdateLoginStatus(state);
-            Program.LobbyClient.OnLoginComplete += LobbyClientOnLoginComplete;
+            Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnLoginComplete;
             LazyAsync.Invoke(GetTwitterStuff);
         }
 
@@ -188,35 +168,14 @@ namespace Octgn.Launcher
         #endregion
 
         #region LoginStuff
-            private void StartSpinning()
-            {
-                if (_bSpin || _animationTimer.IsEnabled) return;
-                _bSpin = true;
-                _animationTimer.Start();
-            }
-
-            private void StopSpinning()
-            {
-                _bSpin = false;
-            }
-
-            private void HandleAnimationTick(object sender, EventArgs e)
-            {
-                SpinnerRotate.Angle = (SpinnerRotate.Angle + 10)%360;
-                if (Math.Abs(SpinnerRotate.Angle - 0) < double.Epsilon && _bSpin == false)
-                    _animationTimer.Stop();
-            }
-
             void LobbyClientOnLoginComplete(object sender, Skylabs.Lobby.Client.LoginResults results)
             {
                 
                 switch (results)
                 {
                     case Skylabs.Lobby.Client.LoginResults.ConnectionError:
-                        UpdateLoginStatus("");
                         _isLoggingIn = false;
                         DoErrorMessage("Could not connect to the server.");
-                        StopSpinning();    
 
                         break;
                     case Skylabs.Lobby.Client.LoginResults.Success:
@@ -236,21 +195,14 @@ namespace Octgn.Launcher
                     new Timer(
                         o =>
                         {
-                            Program.LobbyClient.Stop();
+                            Program.OctgnInstance.LobbyClient.Stop();
                             LoginFinished(Skylabs.Lobby.Client.LoginResult.Failure , DateTime.Now ,
                                           "Please try again.");
                         } ,
                         null , 10000 , System.Threading.Timeout.Infinite);
                 _isLoggingIn = true;
-                StartSpinning();
-                bError.Visibility = Visibility.Hidden;
-                Program.LobbyClient.BeginLogin(textBox1.Text,passwordBox1.Password);
-            }
-
-
-            private void UpdateLoginStatus(string message)
-            {
-                Dispatcher.Invoke(new Action(() => lblLoginStatus.Content = message));
+                lError.Visibility = Visibility.Hidden;
+                Program.OctgnInstance.LobbyClient.BeginLogin(textBox1.Text,passwordBox1.Password);
             }
 
             private void LoginFinished(Skylabs.Lobby.Client.LoginResult success, DateTime banEnd, string message)
@@ -265,9 +217,7 @@ namespace Octgn.Launcher
                 }
                 Dispatcher.Invoke((Action) (() =>
                                                 {
-                                                    Program.LauncherWindow.Closing -= LauncherWindowClosing;
                                                     _isLoggingIn = false;
-                                                    StopSpinning();
                                                     switch (success)
                                                     {
                                                         case Skylabs.Lobby.Client.LoginResult.Success:
@@ -279,7 +229,6 @@ namespace Octgn.Launcher
                                                             Program.MainWindow = new Windows.Main();
                                                             Program.MainWindow.Show();
                                                             Application.Current.MainWindow = Program.MainWindow;
-                                                            Program.LauncherWindow.Close();
                                                             break;
                                                         case Skylabs.Lobby.Client.LoginResult.Banned:
                                                             DoErrorMessage("You have been banned until " +
@@ -299,7 +248,7 @@ namespace Octgn.Launcher
                 Dispatcher.Invoke((Action) (() =>
                                                 {
                                                     lError.Text = message;
-                                                    bError.Visibility = Visibility.Visible;
+                                                    lError.Visibility = Visibility.Visible;
                                                 }), new object[] {});
             }
         #endregion
@@ -312,10 +261,10 @@ namespace Octgn.Launcher
                 g.Row2.Height = new GridLength(25);
                 g.btnCancel.Click += delegate(object o, RoutedEventArgs args)
                                          {
-                                             Program.LauncherWindow.NavigationService.GoBack();
+                                             if (NavigationService != null) NavigationService.GoBack();
                                          };
                 g.OnGameClick += GOnOnGameClick;
-                Program.LauncherWindow.Navigate(g);
+                if (NavigationService != null) NavigationService.Navigate(g);
             }
 
             private void GOnOnGameClick(object sender, EventArgs eventArgs)
@@ -323,7 +272,7 @@ namespace Octgn.Launcher
                 var hg = sender as Octgn.Data.Game;
                 if (hg == null || Program.PlayWindow != null)
                 {
-                    Program.LauncherWindow.Navigate(new Login());
+                    if (NavigationService != null) NavigationService.Navigate(new Login());
                     return;
                 }
                 var hostport = 5000;
@@ -334,7 +283,7 @@ namespace Octgn.Launcher
                 if (!hs.StartProcess())
                 {
                     hs.HostedGameDone -= hs_HostedGameDone;
-                    Program.LauncherWindow.Navigate(new Login());
+                    if (NavigationService != null) NavigationService.Navigate(new Login());
                     return;
                 }
 
@@ -352,7 +301,11 @@ namespace Octgn.Launcher
                 {
                     Program.Client = new Client(ip, hostport);
                     Program.Client.Connect();
-                    Dispatcher.Invoke(new Action(() => Program.LauncherWindow.NavigationService.Navigate(new StartGame(true){Width = 400})));
+                    Dispatcher.Invoke(new Action(() =>
+                                                     {
+                                                         if(NavigationService != null)
+                                                            NavigationService.Navigate(new StartGame(true) {Width = 400});
+                                                     }));
                 }
                 catch (Exception ex)
                 {
@@ -370,7 +323,7 @@ namespace Octgn.Launcher
                 var hg = sender as Octgn.Data.Game;
                 if (hg == null || Program.PlayWindow != null)
                 {
-                    Program.LauncherWindow.NavigationService.Navigate(new Login());
+                    if (NavigationService != null) NavigationService.Navigate(new Login());
                     return;
                 }
                 Program.IsHost = false;
@@ -378,11 +331,11 @@ namespace Octgn.Launcher
                     Program.GamesRepository.Games.FirstOrDefault(g => g.Id == hg.Id);
                 if (theGame == null)
                 {
-                    Program.LauncherWindow.Navigate(new Login());
+                    if (NavigationService != null) NavigationService.Navigate(new Login());
                     return;
                 }
                 Program.Game = new Game(GameDef.FromO8G(theGame.FullPath),true);
-                Program.LauncherWindow.Navigate(new ConnectLocalGame());
+                if (NavigationService != null) NavigationService.Navigate(new ConnectLocalGame());
             }
 
             private void MenuOfflineConnectClick(object sender, RoutedEventArgs e)
@@ -390,12 +343,9 @@ namespace Octgn.Launcher
                 var g = new GameList();
                 g.Row2.Height = new GridLength(25);
                 g.btnCancel.Click += delegate(object o, RoutedEventArgs args)
-                {
-                    Program.LauncherWindow.NavigationService.GoBack();
-                };
+                { if (NavigationService != null) NavigationService.GoBack(); };
                 g.OnGameClick += GOoffConnOnGameClick;
-                Program.LauncherWindow.Navigate(g);
-                
+                if (NavigationService != null) NavigationService.Navigate(g);
             }
         #endregion
 
@@ -421,7 +371,7 @@ namespace Octgn.Launcher
             }
             private void menuAboutUs_Click(object sender, RoutedEventArgs e)
             {
-                Program.LauncherWindow.Navigate(new Windows.AboutWindow());
+                if (NavigationService != null) NavigationService.Navigate(new Windows.AboutWindow());
             }
             private void menuHelp_Click(object sender, RoutedEventArgs e)
             {
@@ -431,9 +381,9 @@ namespace Octgn.Launcher
             {
                 Process.Start("https://github.com/kellyelton/OCTGN/issues");
             }
-            private void TextBox1TextChanged(object sender, TextChangedEventArgs e){bError.Visibility = Visibility.Hidden;}
-            private void PasswordBox1PasswordChanged(object sender, RoutedEventArgs e){bError.Visibility = Visibility.Hidden;}
-            private void btnRegister_Click(object sender, RoutedEventArgs e){Program.LauncherWindow.Navigate(new Register());}
+            private void TextBox1TextChanged(object sender, TextChangedEventArgs e){lError.Visibility = Visibility.Hidden;}
+            private void PasswordBox1PasswordChanged(object sender, RoutedEventArgs e){lError.Visibility = Visibility.Hidden;}
+            private void btnRegister_Click(object sender, RoutedEventArgs e) { if (NavigationService != null) NavigationService.Navigate(new Register()); }
             private void TextBox1KeyUp(object sender, KeyEventArgs e)
             {
                 cbSavePassword.IsChecked = false;
@@ -454,13 +404,12 @@ namespace Octgn.Launcher
         #region Window stuff
             private void PageUnloaded(object sender, RoutedEventArgs e)
             {
-                Program.LobbyClient.OnLoginComplete -= LobbyClientOnLoginComplete;
+                Program.OctgnInstance.LobbyClient.OnLoginComplete -= LobbyClientOnLoginComplete;
             }
 
             private void PageLoaded(object sender, RoutedEventArgs e)
             {
                 //TODO Check for server here
-                menuInstallOnBoot.IsChecked = Prefs.InstallOnBoot;
             }
             private void LauncherWindowClosing(object sender, CancelEventArgs e){if (_isLoggingIn)e.Cancel = true;}
             private void MenuExitClick(object sender, RoutedEventArgs e){if (!_isLoggingIn)Program.Exit();}
@@ -468,7 +417,7 @@ namespace Octgn.Launcher
 
             private void menuCD_Click(object sender, RoutedEventArgs e)
             {
-                System.Windows.Forms.FolderBrowserDialog pf = new FolderBrowserDialog();
+                var pf = new FolderBrowserDialog();
                 pf.SelectedPath = GamesRepository.BasePath;
                 var dr = pf.ShowDialog();
                 if(dr == DialogResult.OK)
@@ -489,11 +438,11 @@ namespace Octgn.Launcher
                 }
             }
 
-            private void menuInstallOnBoot_Checked(object sender, RoutedEventArgs e) { Prefs.InstallOnBoot = menuInstallOnBoot.IsChecked; }
+            private void menuInstallOnBoot_Checked(object sender, RoutedEventArgs e) {  }
 
             private void menuInstallOnBoot_Unchecked(object sender, RoutedEventArgs e)
             {
-                Prefs.InstallOnBoot = menuInstallOnBoot.IsChecked;
+               
             }
 
     }

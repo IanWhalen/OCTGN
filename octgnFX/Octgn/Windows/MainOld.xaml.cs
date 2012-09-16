@@ -398,29 +398,9 @@ namespace Octgn.Windows
             Program.ChatWindows.Clear();
             if (!exiting)
             {
-                if (Program.LauncherWindow != null)
-                {
-                    if (Program.LauncherWindow.IsLoaded)
-                    {
-                        Program.LauncherWindow.Close();
-                    }
-                    Program.LauncherWindow = null;
-                }
-                Program.LauncherWindow = new Windows.LauncherWindow();
-                Program.LauncherWindow.Show();
-                if(Application.Current != null)
-                    Application.Current.MainWindow = Program.LauncherWindow;
             }
             else
             {
-                if (Program.LauncherWindow != null)
-                {
-                    if (Program.LauncherWindow.IsLoaded)
-                    {
-                        Program.LauncherWindow.Close();
-                    }
-                    Program.LauncherWindow = null;
-                }
                 Application.Current.MainWindow = Program.MainWindow;                
             }
             Program.MainWindow.Close();

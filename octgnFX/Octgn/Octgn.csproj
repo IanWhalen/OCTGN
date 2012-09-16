@@ -1000,6 +1000,10 @@
       <Project>{6DD203AF-5003-4AF3-A982-67F10B704D4A}</Project>
       <Name>Octgn.Server</Name>
     </ProjectReference>
+    <ProjectReference Include="..\OctgnLib\OctgnLib.csproj">
+      <Project>{1ea22708-be6f-4dc1-a07d-e490a507da08}</Project>
+      <Name>OctgnLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Skylabs.Lobby\Skylabs.Lobby.csproj">
       <Project>{131805CF-7971-4813-848B-CE156D4F6827}</Project>
       <Name>Skylabs.Lobby</Name>

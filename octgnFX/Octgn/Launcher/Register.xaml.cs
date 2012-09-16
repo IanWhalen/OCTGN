@@ -46,13 +46,13 @@ namespace Octgn.Launcher
                 return;
             }
             progressBar1.Visibility = Visibility.Visible;
-            Program.LobbyClient.OnRegisterComplete += LobbyClientOnOnRegisterComplete;
-            Program.LobbyClient.BeginRegister(tbUsername.Text,tbPass1.Password,tbEmail.Text);
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete += LobbyClientOnOnRegisterComplete;
+            Program.OctgnInstance.LobbyClient.BeginRegister(tbUsername.Text, tbPass1.Password, tbEmail.Text);
         }
 
         private void LobbyClientOnOnRegisterComplete(object sender, Client.RegisterResults results)
         {
-            Program.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
             Dispatcher.Invoke(new Action(()=>
                 {
                     progressBar1.Visibility = Visibility.Hidden;
@@ -65,9 +65,9 @@ namespace Octgn.Launcher
                             MessageBox.Show("Registration Success!", "Octgn", MessageBoxButton.OK,
                                             MessageBoxImage.Information);
                             var l = new Login();
-                            l.textBox1.Text = Program.LobbyClient.Username;
-                            l.passwordBox1.Password = Program.LobbyClient.Password;
-                            Program.LauncherWindow.Navigate(l);
+                            l.textBox1.Text = Program.OctgnInstance.LobbyClient.Username;
+                            l.passwordBox1.Password = Program.OctgnInstance.LobbyClient.Password;
+                            if (NavigationService != null) NavigationService.Navigate(l);
                             break;
                         case Client.RegisterResults.UsernameTaken:
                             lblErrors.Content = "That username is already taken.";
@@ -86,8 +86,8 @@ namespace Octgn.Launcher
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
 
-            Program.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
-            Program.LauncherWindow.Navigate(new Login());
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
+            if (NavigationService != null) NavigationService.Navigate(new Login());
         }
     }
 }

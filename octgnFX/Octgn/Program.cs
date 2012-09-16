@@ -27,13 +27,15 @@ namespace Octgn
     {
         public static Windows.DWindow DebugWindow;
         public static Main MainWindow;
-        public static LauncherWindow LauncherWindow;
         public static DeckBuilderWindow DeckEditor;
         public static PlayWindow PlayWindow;
         public static List<ChatWindow> ChatWindows;
 
+        //TODO This needs to be removed
+        public static Skylabs.Lobby.Client LobbyClient { get { return OctgnInstance.LobbyClient; } }
+
         public static Game Game;
-        public static Skylabs.Lobby.Client LobbyClient;
+        public static OctgnInstance OctgnInstance = new OctgnInstance();
         public static GameSettings GameSettings = new GameSettings();
         public static GamesRepository GamesRepository;
         internal static Client Client;
@@ -76,7 +78,6 @@ namespace Octgn
 
 
 
-            LobbyClient = new Skylabs.Lobby.Client();
             Debug.Listeners.Add(DebugListener);
             DebugTrace.Listeners.Add(DebugListener);
             Trace.Listeners.Add(DebugListener);
@@ -84,7 +85,7 @@ namespace Octgn
             GamesPath = BasePath + @"Games\";
             MainWindow = new Main();
             Application.Current.MainWindow = MainWindow;
-            LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
+            OctgnInstance.LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
         }
 
         static void Chatting_OnCreateRoom(object sender, NewChatRoom room)
@@ -92,7 +93,6 @@ namespace Octgn
             if (ChatWindows.All(x => x.Room.RID != room.RID))
             {
                 if(MainWindow != null) MainWindow.Dispatcher.Invoke(new Action(() => ChatWindows.Add(new ChatWindow(room))));
-                else if(LauncherWindow != null) LauncherWindow.Dispatcher.Invoke(new Action(() => ChatWindows.Add(new ChatWindow(room))));
             }
         }
 
@@ -113,18 +113,13 @@ namespace Octgn
         public static void SaveLocation()
         {
             if (_locationUpdating) return;
-            if (LauncherWindow == null || !LauncherWindow.IsLoaded) return;
             _locationUpdating = true;
-            Prefs.LoginLocation = new Point(LauncherWindow.Left,LauncherWindow.Top);
             _locationUpdating = false;
         }
 
         public static void Exit()
         {
             Application.Current.MainWindow = null;
-            if (LobbyClient != null)
-                LobbyClient.Stop();
-
             SaveLocation();
             try
             {
@@ -137,9 +132,6 @@ namespace Octgn
                 Debug.WriteLine(e);
                 if (Debugger.IsAttached) Debugger.Break();
             }
-            if (LauncherWindow != null)
-                if (LauncherWindow.IsLoaded)
-                    LauncherWindow.Close();
             if (MainWindow != null)
                 if (MainWindow.IsLoaded)
                     MainWindow.Close();

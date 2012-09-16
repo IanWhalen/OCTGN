@@ -10,9 +10,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using CustomWindow;
 using Octgn.Controls;
-using WPF.Themes;
+using Skylabs.Lobby;
 
 namespace Octgn.Windows
 {
@@ -21,16 +20,80 @@ namespace Octgn.Windows
     /// </summary>
     public partial class Main : OctgnChrome
     {
+        private string ConnectMessage
+        {
+            get
+            {
+                var tbText = "";
+                Dispatcher.Invoke(new Action(() =>
+                                                 {
+                                                     tbText = tbConnect.Content as String;
+                                                     ConnectBox.Visibility = String.IsNullOrWhiteSpace(tbText) ? Visibility.Hidden : Visibility.Visible;
+                                                 }));
+                return tbText;
+            }
+            set
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                                                      {
+                                                          tbConnect.Content = value;
+                                                          ConnectBox.Visibility = String.IsNullOrWhiteSpace(value) ? Visibility.Hidden : Visibility.Visible;
+                                                      }));
+            }
+        }
+
         public Main()
         {
             InitializeComponent();
+            ConnectBox.Visibility = Visibility.Hidden;
+            Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClientOnOnStateChanged;
+            Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnOnLoginComplete;
         }
 
-        private void ThemeOnClick(object sender, RoutedEventArgs routedEventArgs)
+        #region LobbyEvents
+
+        private void LobbyClientOnOnStateChanged(object sender, string state)
         {
-            var mi = routedEventArgs.OriginalSource as MenuItem;
-            this.ApplyTheme(mi.Header.ToString());
+            ConnectMessage = state;
         }
+
+        private void LobbyClientOnOnLoginComplete(object sender, Client.LoginResults results)
+        {
+            switch (results)
+            {
+                case Client.LoginResults.ConnectionError:
+                    SetStateOffline();
+                    break;
+                case Client.LoginResults.Success:
+                    Dispatcher.BeginInvoke(new Action(()=>ConnectBox.Visibility = Visibility.Hidden));
+                    SetStateOnline();
+                    break;
+                case Client.LoginResults.Failure:
+                    SetStateOffline();
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Main States
+
+        private void SetStateOffline()
+        {
+            //Must be wrapped in a dispatcher
+        }
+        
+        private void SetStateReconnecting()
+        {
+            //Must be wrapped in a dispatcher
+        }
+
+        private void SetStateOnline()
+        {
+            //Must be wrapped in a dispatcher
+        }
+
+        #endregion 
 
         private void borderHeader_MouseMove(object sender, MouseEventArgs e)
         {
