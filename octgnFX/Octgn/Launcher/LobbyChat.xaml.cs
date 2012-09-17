@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -74,12 +75,24 @@ namespace Octgn.Launcher
         private bool _shiftDown;
         private List<String> _messageCache;
         private int _curMessageCacheItem;
+        private Timer _refreshTimer;
+        private bool _needsRefresh = true;
+        private void OnTits(object state)
+        {
+            if(_needsRefresh)
+                InvokeResetUserList();
+        }
+
         public LobbyChat()
         {
             InitializeComponent();
             _messageCache = new List<string>();
-            if(!IsInDesignMode)
+            if (!IsInDesignMode)
+            {
+                _refreshTimer = new Timer(OnTits, this, 5000, 1000);
                 Program.OctgnInstance.LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
+                
+            }
         }
 
         void Chatting_OnCreateRoom(object sender, Skylabs.Lobby.NewChatRoom room)
@@ -137,7 +150,8 @@ namespace Octgn.Launcher
         private void RoomOnOnUserListChange(object sender, List<NewUser> users)
         {
             _users = users.ToArray();
-            InvokeResetUserList();
+            _needsRefresh = true;
+            //InvokeResetUserList();
         }
 
         private void InvokeResetUserList()
@@ -151,10 +165,22 @@ namespace Octgn.Launcher
                 return;
             var users = _room.Users.ToArray().Where(x=>x.User.User.ToLower().Contains(UserFilter.Text.ToLower())).OrderBy(x=>x.User.User);
             UserList.Items.Clear();
+            var tList = new List<ChatUserListItem>();
             foreach(var u in users)
+            {
+                var ci = new ChatUserListItem();
+                if (_room.AdminList.Any(x => x.User.User == u.User.User))
+                    ci.IsAdmin = true;
+                if (_room.ModeratorList.Any(x => x.User.User == u.User.User))
+                    ci.IsMod = true;
+                ci.User = u;
+                tList.Add(ci);
+            }
+            foreach (var u in tList.OrderByDescending(x => x.IsAdmin).ThenByDescending(x => x.IsMod))
             {
                 UserList.Items.Add(u);
             }
+            _needsRefresh = false;
         }
 
         private void UserFilter_TextChanged(object sender, TextChangedEventArgs e)

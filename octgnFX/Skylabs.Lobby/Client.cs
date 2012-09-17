@@ -215,6 +215,42 @@ namespace Skylabs.Lobby
                     if(OnDataRecieved != null)
                         OnDataRecieved.Invoke(this,DataRecType.FriendList, Friends);
                 }
+                else
+                {
+                    if(iq.Query is agsXMPP.protocol.x.muc.iq.admin.Admin)
+                    {
+                        var r = iq.Query as agsXMPP.protocol.x.muc.iq.admin.Admin;
+                        var rid = iq.From;
+                        var items = r.GetItems();
+                        foreach(var i in items)
+                        {
+                            switch (i.Affiliation)
+                            {
+                                case Affiliation.owner:
+                                    Chatting.Rooms.FirstOrDefault(x=>x.GroupUser.User.Bare == rid.Bare).OwnerList.Add(new NewUser(i.Jid));
+                                    break;
+                                case Affiliation.admin:
+                                    Chatting.Rooms.FirstOrDefault(x => x.GroupUser.User.Bare == rid.Bare).AdminList.Add(new NewUser(i.Jid));
+                                    break;
+                            }
+                            switch(i.Role)
+                            {
+                                case Role.moderator:
+                                    Chatting.Rooms.FirstOrDefault(x => x.GroupUser.User.Bare == rid.Bare).ModeratorList.Add(new NewUser(i.Jid));
+                                    break;
+                            }
+                        }
+                        Chatting.Rooms.FirstOrDefault(x=>x.GroupUser.User.Bare == rid.Bare).FireUpdateList();
+                    }
+                    else if(iq.Query is agsXMPP.protocol.x.muc.iq.owner.Owner)
+                    {
+                        if(Debugger.IsAttached)Debugger.Break();
+                    }
+                    else
+                    {
+                        
+                    }
+                }
             }
         }
 

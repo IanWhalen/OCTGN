@@ -194,6 +194,9 @@
     <Compile Include="Controls\ChatTableRow.xaml.cs">
       <DependentUpon>ChatTableRow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ChatUserListItem.xaml.cs">
+      <DependentUpon>ChatUserListItem.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ChildWindow.cs" />
     <Compile Include="Controls\ChildWindowManager.cs" />
     <Compile Include="Controls\CircularProgressBar.xaml.cs">
@@ -581,6 +584,8 @@
     <Resource Include="Resources\minimize.png" />
     <Resource Include="Resources\closewindow.png" />
     <Resource Include="Resources\search.png" />
+    <Resource Include="Resources\admin.png" />
+    <Resource Include="Resources\moderator.png" />
     <Content Include="Scripting\Lib\abc.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -621,6 +626,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="Controls\ChatTableRow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ChatUserListItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

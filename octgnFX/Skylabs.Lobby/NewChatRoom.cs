@@ -30,18 +30,30 @@ namespace Skylabs.Lobby
         public bool IsGroupChat { get; private set; }
         public long RID { get; private set; }
         public List<NewUser> Users { get; set; }
+        public List<NewUser> AdminList { get; set; }
+        public List<NewUser> OwnerList { get; set; }
+        public List<NewUser> ModeratorList { get; set; }
+        public List<NewUser> VoiceList { get; set; } 
         public NewUser GroupUser { get; private set; }
         private Client _client;
         public NewChatRoom(long rid, Client c,NewUser user)
         {
             RID = rid;
             Users = new List<NewUser>();
+            AdminList = new List<NewUser>();
+            OwnerList = new List<NewUser>();
+            ModeratorList = new List<NewUser>();
+            VoiceList = new List<NewUser>();
             _client = c;
 			if (user.User.Server == "conference." + Skylabs.Lobby.Client.Host)
             {
                 IsGroupChat = true;
                 GroupUser = new NewUser(new Jid(user.User.Bare));
                 _client.MucManager.JoinRoom(GroupUser.User,_client.Me.User.User);
+                _client.MucManager.RequestModeratorList(GroupUser.User);
+                _client.MucManager.RequestAdminList(GroupUser.User);
+                _client.MucManager.RequestOwnerList(GroupUser.User);
+                _client.MucManager.RequestVoiceList(GroupUser.User);
             }
             else
                 AddUser(user);
@@ -173,6 +185,11 @@ namespace Skylabs.Lobby
             IsGroupChat = true;
             GroupUser = gcu;
         }
+        public void FireUpdateList()
+        {
+            if(this.OnUserListChange != null)
+                OnUserListChange.Invoke(this,Users);
+        }
         public void AddUser(NewUser user, bool InviteUser = true)
         {
             if(!Users.Contains(user)) Users.Add(user);
@@ -192,8 +209,9 @@ namespace Skylabs.Lobby
                     foreach(var u in Users) if(u != _client.Me) _client.MucManager.Invite(u.User , GroupUser.User);
                 
             }
-
-            if(OnUserListChange != null) OnUserListChange.Invoke(this,Users);
+            //TODO Hack Find a better way to delay firing UI updates.
+            if(Users.Count > 100)
+                if(OnUserListChange != null) OnUserListChange.Invoke(this,Users);
             
 
         }
