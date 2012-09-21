@@ -51,6 +51,11 @@ namespace Octgn.Windows
             Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClientOnOnStateChanged;
             Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnOnLoginComplete;
             this.Closing += OnClosing;
+            this.Loaded += (sender, args) =>
+                               {
+                                   var p = Tab2.TransformToAncestor(GridMain).Transform(new Point(0, 0));
+                                   BorderTab2.Margin = new Thickness(p.X, 0, 0, 0);
+                               };
         }
 
         private void OnClosing(object sender, CancelEventArgs cancelEventArgs)
