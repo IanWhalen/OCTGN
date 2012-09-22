@@ -191,6 +191,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ChatBar.cs" />
+    <Compile Include="Controls\ChatBarItem.cs" />
     <Compile Include="Controls\ChatTableRow.xaml.cs">
       <DependentUpon>ChatTableRow.xaml</DependentUpon>
     </Compile>
@@ -230,6 +232,7 @@
     <Compile Include="Controls\TabCommands.cs" />
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Extentions\BitmapImageExtensions.cs" />
+    <Compile Include="Extentions\ControlExtensions.cs" />
     <Compile Include="Launcher\LobbyChat.xaml.cs">
       <DependentUpon>LobbyChat.xaml</DependentUpon>
     </Compile>

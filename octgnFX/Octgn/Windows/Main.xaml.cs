@@ -1,63 +1,76 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Octgn.Controls;
-using Skylabs.Lobby;
-using agsXMPP;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Main.xaml.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Interaction logic for Main.xaml
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Windows
 {
+    using System;
+    using System.ComponentModel;
+    using System.Windows;
+
+    using agsXMPP;
+
+    using Octgn.Controls;
+
+    using Skylabs.Lobby;
+
     /// <summary>
-    /// Interaction logic for Main.xaml
+    /// Logic for Main
     /// </summary>
     public partial class Main : OctgnChrome
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Main"/> class.
+        /// </summary>
+        public Main()
+        {
+            this.InitializeComponent();
+            ConnectBox.Visibility = Visibility.Hidden;
+            Program.OctgnInstance.LobbyClient.OnStateChanged += this.LobbyClientOnOnStateChanged;
+            Program.OctgnInstance.LobbyClient.OnLoginComplete += this.LobbyClientOnOnLoginComplete;
+            this.Closing += this.OnClosing;
+        }
+
+        /// <summary>
+        /// Gets or sets the connect message.
+        /// </summary>
         private string ConnectMessage
         {
             get
             {
-                var tbText = "";
+                var textboxText = string.Empty;
                 Dispatcher.Invoke(new Action(() =>
                                                  {
-                                                     tbText = tbConnect.Content as String;
-                                                     ConnectBox.Visibility = String.IsNullOrWhiteSpace(tbText) ? Visibility.Hidden : Visibility.Visible;
+                                                     textboxText = tbConnect.Content as string;
+                                                     ConnectBox.Visibility = string.IsNullOrWhiteSpace(textboxText) ? Visibility.Hidden : Visibility.Visible;
                                                  }));
-                return tbText;
+                return textboxText;
             }
+
             set
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                                                       {
                                                           tbConnect.Content = value;
-                                                          ConnectBox.Visibility = String.IsNullOrWhiteSpace(value) ? Visibility.Hidden : Visibility.Visible;
+                                                          ConnectBox.Visibility = string.IsNullOrWhiteSpace(value) ? Visibility.Hidden : Visibility.Visible;
                                                       }));
             }
         }
 
-        public Main()
-        {
-            InitializeComponent();
-            ConnectBox.Visibility = Visibility.Hidden;
-            Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClientOnOnStateChanged;
-            Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnOnLoginComplete;
-            this.Closing += OnClosing;
-            this.Loaded += (sender, args) =>
-                               {
-                                   var p = Tab2.TransformToAncestor(GridMain).Transform(new Point(0, 0));
-                                   BorderTab2.Margin = new Thickness(p.X, 0, 0, 0);
-                               };
-        }
-
+        /// <summary>
+        /// Happens when the window is closing
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="cancelEventArgs">
+        /// The cancel event args.
+        /// </param>
         private void OnClosing(object sender, CancelEventArgs cancelEventArgs)
         {
             Program.OctgnInstance.Close();
@@ -65,24 +78,44 @@ namespace Octgn.Windows
 
         #region LobbyEvents
 
-        private void LobbyClientOnOnStateChanged(object sender, agsXMPP.XmppConnectionState state)
+        /// <summary>
+        /// The lobby client on on state changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="state">
+        /// The state.
+        /// </param>
+        private void LobbyClientOnOnStateChanged(object sender, XmppConnectionState state)
         {
-            ConnectMessage = state == XmppConnectionState.Disconnected ? "" : state.ToString();
-            if(state == XmppConnectionState.Disconnected)
-                SetStateOffline();
+            this.ConnectMessage = state == XmppConnectionState.Disconnected ? string.Empty : state.ToString();
+            if (state == XmppConnectionState.Disconnected)
+            {
+                this.SetStateOffline();
+            }
         }
 
+        /// <summary>
+        /// The lobby client on on login complete.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="results">
+        /// The results.
+        /// </param>
         private void LobbyClientOnOnLoginComplete(object sender, LoginResults results)
         {
-            Dispatcher.BeginInvoke(new Action(()=>ConnectBox.Visibility = Visibility.Hidden));
+            this.Dispatcher.BeginInvoke(new Action(() => ConnectBox.Visibility = Visibility.Hidden));
             switch (results)
             {
                 case LoginResults.Success:
-                    SetStateOnline();
-                    Dispatcher.BeginInvoke(new Action(()=>TabLobby.Focus()));
+                    this.SetStateOnline();
+                    this.Dispatcher.BeginInvoke(new Action(() => TabLobby.Focus()));
                     break;
                 default:
-                    SetStateOffline();
+                    this.SetStateOffline();
                     break;
             }
         }
@@ -91,44 +124,47 @@ namespace Octgn.Windows
 
         #region Main States
 
+        /// <summary>
+        /// The set state offline.
+        /// </summary>
         private void SetStateOffline()
         {
-            Dispatcher.BeginInvoke(new Action(() => { 
-                TabLobby.IsEnabled = false;
-                TabCustomGames.IsEnabled = false;
-                TabMain.Focus();
-            }));
-            //Must be wrapped in a dispatcher
-        }
-        
-        private void SetStateReconnecting()
-        {
-            //Must be wrapped in a dispatcher
+            this.Dispatcher.BeginInvoke(
+                new Action(
+                    () =>
+                        {
+                            TabLobby.IsEnabled = false;
+                            TabCustomGames.IsEnabled = false;
+                            TabMain.Focus();
+                        }));
         }
 
+        /// <summary>
+        /// The set state online.
+        /// </summary>
         private void SetStateOnline()
         {
-            Dispatcher.BeginInvoke(new Action(() => { 
-                TabLobby.IsEnabled = true ;
-                TabCustomGames.IsEnabled = true;
-            }));
+            Dispatcher.BeginInvoke(
+                new Action(
+                    () =>
+                        {
+                            TabLobby.IsEnabled = true;
+                            TabCustomGames.IsEnabled = true;
+                        }));
         }
 
-        #endregion 
+        #endregion
 
-        private void borderHeader_MouseMove(object sender, MouseEventArgs e)
-        {
-        }
-
-        private void Thumb_DragDelta_1(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
-        {
-            if (this.Width + e.HorizontalChange > 10)
-                this.Width += e.HorizontalChange;
-            if (this.Height + e.VerticalChange > 10)
-                this.Height += e.VerticalChange;
-        }
-
-        private void menuAbout_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// The menu about clicked.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void MenuAboutClick(object sender, RoutedEventArgs e)
         {
             var w = new AboutWindow();
             w.ShowDialog();
