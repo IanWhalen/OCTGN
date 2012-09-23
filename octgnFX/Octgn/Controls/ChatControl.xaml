@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:Controls="clr-namespace:Octgn.Controls"
-             mc:Ignorable="d" Height="397" Width="845">
+             mc:Ignorable="d" Height="397" Width="845" Focusable="True" GotFocus="UserControl_GotFocus_1">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100*"/>
@@ -32,7 +32,7 @@
             </TextBox>
         </Grid>
         <TextBox x:Name="ChatInput" Grid.Row="1" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="ChatInputPreviewKeyUp" PreviewKeyDown="ChatInputPreviewKeyDown"/>
-        <RichTextBox x:Name="Chat" VerticalScrollBarVisibility="Auto">
+        <RichTextBox x:Name="Chat" VerticalScrollBarVisibility="Auto" IsReadOnly="True" IsDocumentEnabled="True">
             <FlowDocument>
                 <Table CellSpacing="0">
                     <Table.Columns>

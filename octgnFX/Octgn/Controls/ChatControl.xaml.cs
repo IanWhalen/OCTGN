@@ -13,7 +13,9 @@ namespace Octgn.Controls
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Documents;
     using System.Windows.Input;
     using System.Windows.Media;
 
@@ -55,6 +57,11 @@ namespace Octgn.Controls
         /// The user refresh timer.
         /// </summary>
         private Timer userRefreshTimer;
+
+        /// <summary>
+        /// Just scrolled to bottom.
+        /// </summary>
+        private bool justScrolledToBottom;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatControl"/> class.
@@ -138,10 +145,50 @@ namespace Octgn.Controls
                 theFrom.User.User = "SYSTEM";
             }
 
-            Dispatcher.BeginInvoke(
+            Dispatcher.Invoke(
                 new Action(
                     () =>
                         {
+                            var rtbatbottom = false;
+
+                            // bool firstAutoScroll = true; // never used 
+                            Chat.ScrollToVerticalOffset(Chat.VerticalOffset);
+
+                            // check to see if the richtextbox is scrolled to the bottom.
+                            var dVer = Chat.VerticalOffset;
+
+                            // get the vertical size of the scrollable content area
+                            var dViewport = Chat.ViewportHeight;
+
+                            // get the vertical size of the visible content area
+                            var dExtent = Chat.ExtentHeight;
+
+                            if (Math.Abs(dVer - 0) < double.Epsilon && dViewport < dExtent)
+                            {
+                                rtbatbottom = true;
+                            }
+
+                            if (Math.Abs(dVer - 0) > double.Epsilon)
+                            {
+                                if (Math.Abs(dVer + dViewport - dExtent) < double.Epsilon)
+                                {
+                                    rtbatbottom = true;
+                                    justScrolledToBottom = false;
+                                }
+                                else
+                                {
+                                    if (!justScrolledToBottom)
+                                    {
+                                        var tr = new TableRow();
+                                        var tc = new TableCell()
+                                            { BorderThickness = new Thickness(0,1,0,1), BorderBrush = Brushes.Gainsboro, ColumnSpan = 3 };
+                                        tr.Cells.Add(tc);
+                                        ChatRowGroup.Rows.Add(tr);
+                                        justScrolledToBottom = true;
+                                    }
+                                }
+                            }
+
                             var ctr = new ChatTableRow
                                 { User = theFrom, Message = theMessage, MessageDate = therTime, MessageType = themType };
 
@@ -170,7 +217,11 @@ namespace Octgn.Controls
                                 }
                             };
                             ChatRowGroup.Rows.Add(ctr);
-                    }));
+                            if (rtbatbottom)
+                            {
+                                Chat.ScrollToEnd();
+                            }
+                        }));
         }
 
         /// <summary>
@@ -337,6 +388,11 @@ namespace Octgn.Controls
                         break;
                 }
             }
+        }
+
+        private void UserControl_GotFocus_1(object sender, RoutedEventArgs e)
+        {
+            ChatInput.Focus();
         }
     }
 }
