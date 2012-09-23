@@ -1,10 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Cryptor.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Defines the Cryptor type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+
 
 namespace Octgn.Utils
 {
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Security.Cryptography;
+    using System.Text;
+
+    /// <summary>
+    /// The cryptor.
+    /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
     internal class Cryptor
     {
         /// <summary>
@@ -17,28 +33,35 @@ namespace Octgn.Utils
         public static byte[] Encrypt(byte[] clearData, byte[] key, byte[] iv)
         {
             var ms = new MemoryStream();
-            TripleDES alg = TripleDES.Create();
+            var alg = TripleDES.Create();
             alg.Key = key;
             alg.IV = iv;
             var cs = new CryptoStream(ms, alg.CreateEncryptor(), CryptoStreamMode.Write);
             cs.Write(clearData, 0, clearData.Length);
             cs.Close();
-            byte[] encryptedData = ms.ToArray();
+            var encryptedData = ms.ToArray();
             return encryptedData;
         }
 
-
+        /// <summary>
+        /// The encryption.
+        /// </summary>
+        /// <param name="text">
+        /// The text to encrypt.
+        /// </param>
+        /// <param name="key">
+        /// The key to encrypt with
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
         public static string Encrypt(string text, string key)
         {
-            byte[] bytes = Encoding.Unicode.GetBytes(text);
-            var pdb = new Rfc2898DeriveBytes(key,
-                                             new byte[]
-                                                 {
-                                                     0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d,
-                                                     0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76
-                                                 });
+            var bytes = Encoding.Unicode.GetBytes(text);
+            var pdb = new Rfc2898DeriveBytes(
+                key, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
 
-            byte[] encryptedData = Encrypt(bytes, pdb.GetBytes(16), pdb.GetBytes(8));
+            var encryptedData = Encrypt(bytes, pdb.GetBytes(16), pdb.GetBytes(8));
             return Convert.ToBase64String(encryptedData);
         }
 
@@ -52,7 +75,7 @@ namespace Octgn.Utils
         public static byte[] Decrypt(byte[] cipherData, byte[] key, byte[] iv)
         {
             var ms = new MemoryStream();
-            TripleDES alg = TripleDES.Create();
+            var alg = TripleDES.Create();
             alg.Key = key;
             alg.IV = iv;
             var cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
@@ -60,7 +83,7 @@ namespace Octgn.Utils
             {
                 cs.Write(cipherData, 0, cipherData.Length);
                 cs.Close();
-                byte[] decryptedData = ms.ToArray();
+                var decryptedData = ms.ToArray();
                 return decryptedData;
             }
             catch (CryptographicException)
@@ -69,18 +92,19 @@ namespace Octgn.Utils
             }
         }
 
-
+        /// <summary>
+        /// Decrypts an encrypted string.
+        /// </summary>
+        /// <param name="encryptedText">The encrypted string</param>
+        /// <param name="key">The key</param>
+        /// <returns>Unencrypted string</returns>
         public static string Decrypt(string encryptedText, string key)
         {
-            byte[] cryptedBytes = Convert.FromBase64String(encryptedText);
-            var pdb = new Rfc2898DeriveBytes(key,
-                                             new byte[]
-                                                 {
-                                                     0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65,
-                                                     0x64, 0x76, 0x65, 0x64, 0x65, 0x76
-                                                 });
-            byte[] decryptedData = Decrypt(cryptedBytes, pdb.GetBytes(16), pdb.GetBytes(8));
-            return Encoding.Unicode.GetString(decryptedData ?? new byte[] {});
+            var cryptedBytes = Convert.FromBase64String(encryptedText);
+            var pdb = new Rfc2898DeriveBytes(
+                key, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+            var decryptedData = Decrypt(cryptedBytes, pdb.GetBytes(16), pdb.GetBytes(8));
+            return Encoding.Unicode.GetString(decryptedData ?? new byte[] { });
         }
     }
 }

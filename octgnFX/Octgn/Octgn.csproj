@@ -445,12 +445,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils\FileIcon.cs" />
     <Compile Include="Utils\GroupVisibility.cs" />
     <Compile Include="Utils\ImageUtils.cs" />
     <Compile Include="Extentions\LinqExtensions.cs" />
-    <Compile Include="Utils\IServerCalls.cs" />
-    <Compile Include="Utils\ShellLink.cs" />
+    <Compile Include="Utils\TraceEvent.cs" />
     <Compile Include="Utils\Win32.cs" />
     <Compile Include="Utils\XmlInstaller.cs" />
     <Compile Include="Utils\XmlSetParser.cs" />

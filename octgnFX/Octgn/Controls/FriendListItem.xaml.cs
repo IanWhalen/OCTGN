@@ -196,7 +196,7 @@ namespace Octgn.Controls
         private void UpdateWindowLocation()
         {
             if (_dragdropWindow == null) return;
-            Win32.POINT p;
+            Win32.Point p;
             if (!Win32.GetCursorPos(out p))
             {
                 return;

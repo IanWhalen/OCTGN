@@ -2,6 +2,10 @@ using System;
 
 namespace Octgn.Utils
 {
+    /// <summary>
+    /// Not sure why we really need this, there are VERY good encryption algorithms built into .net.
+    /// This is just a huge waste of space.
+    /// </summary>
     internal static class Crypto
     {
         private static readonly BigInteger B = new BigInteger(1125899906842628);

@@ -1,28 +1,41 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Windows;
-using System.Xml;
-using Octgn.Data;
-using Octgn.Definitions;
-using Octgn.Scripting;
-using Skylabs.Lobby.Threading;
-using vbAccelerator.Components.Shell;
+// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="UpdateChecker.xaml.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Interaction logic for UpdateChecker.xaml
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Windows
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Reflection;
+    using System.Security.Cryptography;
+    using System.Threading;
+    using System.Windows;
+    using System.Xml;
+
+    using Octgn.Data;
+    using Octgn.Definitions;
+    using Octgn.Scripting;
+
+    using Skylabs.Lobby.Threading;
+
     /// <summary>
     ///   Interaction logic for UpdateChecker.xaml
     /// </summary>
     public partial class UpdateChecker
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether this is closing down.
+        /// </summary>
         public bool IsClosingDown { get; set; }
 
         private bool _realCloseWindow = false;
@@ -59,62 +72,6 @@ namespace Octgn.Windows
                 UpdateCheckDone();
             });
             lblStatus.Content = "";
-        }
-
-        private void UpdateUserShortcuts()
-        {
-            try
-            {
-
-                UpdateStatus("Updating Links...");
-                var newWorkingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "OCTGN",
-                                           "OCTGN");
-                var newTarget = Path.Combine(newWorkingDirectory, "octgn.exe");
-
-                var fileList = new List<string>();
-
-                var sPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
-                if(Directory.Exists(sPath))
-                    fileList.AddRange(Directory.GetFiles(sPath, "*.lnk", SearchOption.AllDirectories));
-
-                sPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                if(Directory.Exists(sPath))
-                    fileList.AddRange(Directory.GetFiles(sPath, "*.lnk", SearchOption.AllDirectories));
-
-                //I guess doing a recursive search covers all pinned shortcuts in the taskbar and start menu as well in 7 and above
-                sPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft","Internet Explorer","Quick Launch");
-                if(Directory.Exists(sPath))
-                    fileList.AddRange(Directory.GetFiles(sPath, "*.lnk", SearchOption.AllDirectories));
-
-                //Look through files for an octgn link
-                foreach( var fs in fileList)
-                {
-                    try
-                    {
-                        using(var s = new ShellLink(fs))
-                        {
-                            var finfo = new FileInfo(s.Target);
-                            if (finfo.Name.ToLowerInvariant() != "octgn.exe")
-                                continue;
-                            if (s.Target.ToLowerInvariant() == newTarget.ToLowerInvariant() &&
-                                s.WorkingDirectory.ToLowerInvariant() == newWorkingDirectory.ToLowerInvariant()) continue;
-                            s.Target = newTarget;
-                            s.WorkingDirectory = newWorkingDirectory;
-                            s.Save();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-    #if(DEBUG)
-                        UpdateStatus(String.Format("[UpdateLink Failure] {0}",e.Message));
-    #endif
-                    }
-                }
-            }
-            catch (Exception e )
-            {
-                new ErrorWindow(e).Show();
-            }
         }
 
         private void InstallDefsFromFolders()
@@ -379,7 +336,7 @@ namespace Octgn.Windows
                         }
                         if (fhash.ToLower() == g.FileHash.ToLower()) continue;
 
-                        Program.Game = new Game(GameDef.FromO8G(fpath));
+                        Program.Game = new Octgn.Game(GameDef.FromO8G(fpath));
                         Program.Game.TestBegin();
                         //IEnumerable<Player> plz = Player.All;
                         var engine = new Engine(true);
@@ -487,7 +444,7 @@ namespace Octgn.Windows
 
         public static bool CheckGameDef(GameDef game)
         {
-            Program.Game = new Game(game);
+            Program.Game = new Octgn.Game(game);
             Program.Game.TestBegin();
             var engine = new Engine(true);
             string[] terr = engine.TestScripts(Program.Game);

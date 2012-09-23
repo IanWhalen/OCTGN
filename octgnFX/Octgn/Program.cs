@@ -106,7 +106,6 @@ namespace Octgn
             Game.End();
             Game = null;
             Dispatcher = null;
-            Database.Close();
             IsGameRunning = false;
         }
 

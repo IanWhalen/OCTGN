@@ -2,6 +2,9 @@ using System;
 
 namespace Octgn.Utils
 {
+    /// <summary>
+    /// Not Sure why we need this, I believe .net has a BigInteger implementation now, and this just takes up room.
+    /// </summary>
     public class BigInteger
     {
         // maximum length of the BigInteger in uint (4 bytes)

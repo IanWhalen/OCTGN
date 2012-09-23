@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.IO;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="XmlInstaller.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Defines the XmlInstaller type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Utils
 {
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+
     class XmlInstaller
     {
 

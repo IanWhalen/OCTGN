@@ -1,10 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="XmlSimpleValidate.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Defines the XmlSimpleValidate type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Utils
 {
+    using System;
+
     class XmlSimpleValidate
     {
         public XmlSetParser xml_set;

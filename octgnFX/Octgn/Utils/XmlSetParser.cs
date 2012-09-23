@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.XPath;
-using System.Globalization;
-
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="XmlSetParser.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Defines the XmlSetParser type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Utils
 {
+    using System;
+    using System.Globalization;
+    using System.Xml;
+    using System.Xml.XPath;
+
     class XmlSetParser
     {
         private string xmlUrl;
