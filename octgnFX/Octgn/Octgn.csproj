@@ -222,6 +222,10 @@
     <Compile Include="Controls\GameListItem.xaml.cs">
       <DependentUpon>GameListItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ChatControl.xaml.cs">
+      <DependentUpon>ChatControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\LobbyChat.cs" />
     <Compile Include="Controls\NotificationListItem.xaml.cs">
       <DependentUpon>NotificationListItem.xaml</DependentUpon>
     </Compile>
@@ -233,9 +237,6 @@
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Extentions\BitmapImageExtensions.cs" />
     <Compile Include="Extentions\ControlExtensions.cs" />
-    <Compile Include="Launcher\LobbyChat.xaml.cs">
-      <DependentUpon>LobbyChat.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Networking\IServerCalls.cs">
       <DependentUpon>IServerCalls.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -664,6 +665,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\ChatControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\NotificationListItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -709,10 +714,6 @@
     <Page Include="Launcher\HostGameSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Launcher\LobbyChat.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Launcher\NotificationList.xaml">
       <Generator>MSBuild:Compile</Generator>

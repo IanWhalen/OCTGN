@@ -1898,7 +1898,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type TabControl}">
+    <Style TargetType="{x:Type TabControl}" x:Key="{x:Type TabControl}" >
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabControl}">
@@ -2016,7 +2016,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style d:IsControlPart="True" TargetType="{x:Type TabItem}">
+    <Style d:IsControlPart="True" TargetType="{x:Type TabItem}" x:Key="{x:Type TabItem}">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="Template">
             <Setter.Value>

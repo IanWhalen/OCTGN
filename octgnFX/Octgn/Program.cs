@@ -85,7 +85,7 @@ namespace Octgn
             GamesPath = BasePath + @"Games\";
             MainWindow = new Main();
             Application.Current.MainWindow = MainWindow;
-            OctgnInstance.LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
+            //OctgnInstance.LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
         }
 
         static void Chatting_OnCreateRoom(object sender, NewChatRoom room)

@@ -13,6 +13,7 @@ namespace Octgn.Controls
     using System.Linq;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Input;
 
     using Octgn.Extentions;
 
@@ -23,7 +24,15 @@ namespace Octgn.Controls
     /// </summary>
     public class ChatBar : TabControl
     {
-        private GridLength barHeight = new GridLength(1,GridUnitType.Auto);
+        /// <summary>
+        /// The bar height.
+        /// </summary>
+        private GridLength barHeight = new GridLength(1, GridUnitType.Auto);
+
+        /// <summary>
+        /// The current tab selection.
+        /// </summary>
+        private object currentTabSelection;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatBar"/> class.
@@ -31,6 +40,8 @@ namespace Octgn.Controls
         public ChatBar()
         {
             this.TabStripPlacement = Dock.Bottom;
+            this.Items.Add(new TabItem { Visibility = Visibility.Collapsed });
+            this.currentTabSelection = this.Items[0];
             if (!this.IsInDesignMode())
             {
                 this.Loaded +=
@@ -73,8 +84,35 @@ namespace Octgn.Controls
         private void LobbyCreateRoom(object sender, NewChatRoom room)
         {
             var r = room;
-            this.Dispatcher.BeginInvoke(
-                new Action(() => this.Items.Add(new ChatBarItem(r) { Height = this.barHeight.Value })));
+            this.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var chatBarItem = new ChatBarItem(r) { Height = this.barHeight.Value };
+                    chatBarItem.HeaderMouseUp += ChatBarItemOnPreviewMouseUp;
+                    this.Items.Add(chatBarItem);
+                }));
+        }
+
+        /// <summary>
+        /// The chat bar item on preview mouse up.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="mouseButtonEventArgs">
+        /// The mouse button event arguments.
+        /// </param>
+        private void ChatBarItemOnPreviewMouseUp(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+        {
+            if (this.currentTabSelection is ChatBarItem && sender == this.currentTabSelection)
+            {
+                this.SelectedIndex = 0;
+                this.InvalidateVisual();
+                this.currentTabSelection = this.Items[0];
+            }
+            else
+            {
+                this.currentTabSelection = sender;
+            }
         }
     }
 }

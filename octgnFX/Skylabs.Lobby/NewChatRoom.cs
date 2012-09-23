@@ -102,6 +102,12 @@ namespace Skylabs.Lobby
                         SetTopic(mess);
                         break;
                     }
+                    case "msg":
+                        {
+                            var r = this._client.Chatting.GetRoom(
+                                new NewUser(new Jid(mess, Skylabs.Lobby.Client.Host, this._client.Me.User.Resource)));
+                            break;
+                        }
                 }
             }
             else
@@ -113,6 +119,11 @@ namespace Skylabs.Lobby
                 m.XEvent.Delivered = true;
                 m.XEvent.Displayed = true;
                 _client.Send(m);
+                if (!IsGroupChat)
+                {
+                    m.From = _client.Me.User;
+                    this.OnMessage(this, m);
+                }
             }
 
         }
