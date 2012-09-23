@@ -459,9 +459,6 @@
     <Compile Include="Windows\ChangeSetsProgressDialog.xaml.cs">
       <DependentUpon>ChangeSetsProgressDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\ChatWindow.xaml.cs">
-      <DependentUpon>ChatWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Windows\DWindow.xaml.cs">
       <DependentUpon>DWindow.xaml</DependentUpon>
     </Compile>
@@ -931,10 +928,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\ChangeSetsProgressDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\ChatWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -391,11 +391,6 @@ namespace Octgn.Windows
             SystemTrayIcon.Dispose();
             if (Program.DeckEditor != null)
                 Program.DeckEditor.Close();
-            foreach (ChatWindow cw in Program.ChatWindows)
-            {
-                cw.CloseChatWindow();
-            }
-            Program.ChatWindows.Clear();
             if (!exiting)
             {
             }

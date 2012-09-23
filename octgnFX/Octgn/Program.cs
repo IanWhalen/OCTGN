@@ -15,7 +15,6 @@ using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Utils;
 using Skylabs.Lobby;
-using ChatWindow = Octgn.Windows.ChatWindow;
 using Client = Octgn.Networking.Client;
 using LauncherWindow = Octgn.Windows.LauncherWindow;
 using Main = Octgn.Windows.Main;
@@ -29,7 +28,6 @@ namespace Octgn
         public static Main MainWindow;
         public static DeckBuilderWindow DeckEditor;
         public static PlayWindow PlayWindow;
-        public static List<ChatWindow> ChatWindows;
 
         //TODO This needs to be removed
         public static Skylabs.Lobby.Client LobbyClient { get { return OctgnInstance.LobbyClient; } }
@@ -88,14 +86,6 @@ namespace Octgn
             //OctgnInstance.LobbyClient.Chatting.OnCreateRoom += Chatting_OnCreateRoom;
         }
 
-        static void Chatting_OnCreateRoom(object sender, NewChatRoom room)
-        {
-            if (ChatWindows.All(x => x.Room.RID != room.RID))
-            {
-                if(MainWindow != null) MainWindow.Dispatcher.Invoke(new Action(() => ChatWindows.Add(new ChatWindow(room))));
-            }
-        }
-
         public static void StopGame()
         {
             if (Client != null)
@@ -137,17 +127,6 @@ namespace Octgn
             if (PlayWindow != null)
                 if (PlayWindow.IsLoaded)
                     PlayWindow.Close();
-            try
-            {
-                foreach (ChatWindow cw in ChatWindows.Where(cw => cw.IsLoaded))
-                {
-                    cw.CloseChatWindow();
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-            }
             //Apparently this can be null sometimes?
             if(Application.Current != null)
                 Application.Current.Shutdown(0);

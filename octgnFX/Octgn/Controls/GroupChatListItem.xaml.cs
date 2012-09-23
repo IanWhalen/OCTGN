@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Octgn.Launcher;
 using Skylabs.Lobby;
-using ChatWindow = Octgn.Windows.ChatWindow;
 
 namespace Octgn.Controls
 {
@@ -78,9 +77,6 @@ namespace Octgn.Controls
         private void Image1MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (_chatRoom.GroupUser.User.User == "lobby") return;
-            ChatWindow firstOrDefault = Program.ChatWindows.FirstOrDefault(cw => cw.Id == ThisRoom.RID);
-            if (firstOrDefault != null)
-                firstOrDefault.CloseChatWindow();
             _isRemoving = true;
         }
     }

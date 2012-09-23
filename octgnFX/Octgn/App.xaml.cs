@@ -9,7 +9,6 @@ using System.Windows;
 using Octgn.Data;
 using Octgn.Launcher;
 using Octgn.Windows;
-using ChatWindow = Octgn.Windows.ChatWindow;
 
 namespace Octgn
 {
@@ -55,7 +54,6 @@ namespace Octgn
             if (!uc.IsClosingDown)
             {
                 Program.MainWindow.Show();
-                Program.ChatWindows = new List<ChatWindow>();
             }
             else
             {
