@@ -98,7 +98,7 @@ namespace Octgn.Controls
             this.room = theRoom;
             this.InvokeResetUserList();
             this.room.OnUserListChange += this.RoomOnUserListChange;
-            this.room.OnMessageRecieved += this.RoomOnMessageRecieved;
+            this.room.OnMessageReceived += this.RoomOnMessageReceived;
             this.userRefreshTimer = new Timer(this.OnRefreshTimerTick, this, 5000, 1000);
         }
 
@@ -134,7 +134,7 @@ namespace Octgn.Controls
         /// <param name="messageType">
         /// The message type.
         /// </param>
-        private void RoomOnMessageRecieved(object sender, NewUser @from, string message, DateTime receiveTime, LobbyMessageType messageType)
+        private void RoomOnMessageReceived(object sender, NewUser @from, string message, DateTime receiveTime, LobbyMessageType messageType)
         {
             var theFrom = from;
             var theMessage = message;

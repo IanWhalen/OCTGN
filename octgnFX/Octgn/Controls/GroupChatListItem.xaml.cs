@@ -50,7 +50,7 @@ namespace Octgn.Controls
             {
                 if (value != null)
                 {
-                    _chatRoomId = value.RID;
+                    _chatRoomId = value.Rid;
                     image1.Opacity = 1;
                     SetValue(UsernameProperty , value.GroupUser.User.User);
                 }

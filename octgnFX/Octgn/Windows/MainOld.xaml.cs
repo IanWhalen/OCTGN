@@ -79,7 +79,7 @@ namespace Octgn.Windows
             InputBindings.Add(ib);
             //Program.LobbyClient.OnFriendRequest += lobbyClient_OnFriendRequest;
             Program.LobbyClient.OnFriendRequest += LobbyClientOnOnFriendRequest;
-            Program.LobbyClient.OnDataRecieved += LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived += this.LobbyClientOnOnDataReceived;
             Program.LobbyClient.OnDisconnect += LobbyClientOnOnDisconnect;
             tbUsername.Text = Program.LobbyClient.Username;
             tbStatus.Text = Program.LobbyClient.CustomStatus;
@@ -135,7 +135,7 @@ namespace Octgn.Windows
             }
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender, Skylabs.Lobby.DataRecType type, object data)
+        private void LobbyClientOnOnDataReceived(object sender, Skylabs.Lobby.DataRecType type, object data)
         {
             Dispatcher.BeginInvoke(new Action(()=>
             {
@@ -399,7 +399,7 @@ namespace Octgn.Windows
                 Application.Current.MainWindow = Program.MainWindow;                
             }
             Program.MainWindow.Close();
-            Program.LobbyClient.OnDataRecieved -= LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived -= this.LobbyClientOnOnDataReceived;
             Program.LobbyClient.OnFriendRequest -= LobbyClientOnOnFriendRequest;
             Program.LobbyClient.OnDisconnect -= LobbyClientOnOnDisconnect;
             Program.LobbyClient.Stop();

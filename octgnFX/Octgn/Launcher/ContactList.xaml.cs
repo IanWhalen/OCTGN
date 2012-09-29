@@ -17,7 +17,7 @@ namespace Octgn.Launcher
         public ContactList()
         {
             InitializeComponent();
-            Program.LobbyClient.OnDataRecieved += LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived += this.LobbyClientOnOnDataReceived;
             Program.LobbyClient.Chatting.OnCreateRoom += ChattingOnOnCreateRoom;
         }
 
@@ -26,7 +26,7 @@ namespace Octgn.Launcher
             LazyAsync.Invoke(RefreshList);
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender, DataRecType type, object data)
+        private void LobbyClientOnOnDataReceived(object sender, DataRecType type, object data)
         {
             if (type == DataRecType.FriendList)
             {
@@ -90,7 +90,7 @@ namespace Octgn.Launcher
 
         private void PageUnloaded(object sender, RoutedEventArgs e)
         {
-            Program.LobbyClient.OnDataRecieved -= LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived -= this.LobbyClientOnOnDataReceived;
         }
     }
 }

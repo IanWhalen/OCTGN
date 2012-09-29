@@ -21,11 +21,11 @@ namespace Octgn.Launcher
         {
             InitializeComponent();
             Refreshing = bRefreshing;
-            Program.LobbyClient.OnDataRecieved += LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived += this.LobbyClientOnOnDataReceived;
             Program.LobbyClient.BeginGetGameList();
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender , DataRecType type , object data)
+        private void LobbyClientOnOnDataReceived(object sender , DataRecType type , object data)
         {
             if(type == DataRecType.GameList)
                 ReloadGameList();
@@ -107,7 +107,7 @@ namespace Octgn.Launcher
 
         private void PageUnloaded(object sender, RoutedEventArgs e)
         {
-            Program.LobbyClient.OnDataRecieved -= LobbyClientOnOnDataRecieved;
+            Program.LobbyClient.OnDataReceived -= this.LobbyClientOnOnDataReceived;
 			RefreshTimer.Dispose();
         	RefreshTimer = null;
         }
