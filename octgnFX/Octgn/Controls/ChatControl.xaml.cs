@@ -389,10 +389,5 @@ namespace Octgn.Controls
                 }
             }
         }
-
-        private void UserControl_GotFocus_1(object sender, RoutedEventArgs e)
-        {
-            ChatInput.Focus();
-        }
     }
 }
