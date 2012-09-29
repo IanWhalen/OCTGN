@@ -585,6 +585,7 @@
     <Resource Include="Resources\search.png" />
     <Resource Include="Resources\admin.png" />
     <Resource Include="Resources\moderator.png" />
+    <Resource Include="Resources\owner.png" />
     <Content Include="Scripting\Lib\abc.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

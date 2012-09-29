@@ -64,15 +64,33 @@ namespace Octgn.Controls
             }
         }
 
+        public bool IsOwner
+        {
+            get { return _isOwner; }
+            set
+            {
+                _isOwner = value;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageOwner.Visibility = _isOwner
+                                                                                      ? Visibility.Visible
+                                                                                      : Visibility.Collapsed;
+
+                }));
+            }
+        }
+
         private NewUser _user;
         private bool _isAdmin;
         private bool _isMod;
+        private bool _isOwner;
         public ChatUserListItem()
         {
             InitializeComponent();
             User = new NewUser(new Jid("noone@server.octgn.info"));
             IsAdmin = false;
             IsMod = false;
+            IsOwner = false;
         }
     }
 }

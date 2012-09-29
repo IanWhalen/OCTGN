@@ -68,7 +68,7 @@ namespace Skylabs.Lobby
         public bool DisconnectedBecauseConnectionReplaced { get; set; }
 
 #if(!DEBUG)
-    	public const string Host = "server.octgn.info";
+        public const string Host = "server.octgn.info";
 #else
         public const string Host = "server.octgn.info";
 #endif
@@ -77,9 +77,9 @@ namespace Skylabs.Lobby
         {
             get
             {
-				var s = NewUser.PresenceToStatus(myPresence);
-				if(s == UserStatus.Unknown) s = Me.Status;
-            	return s;
+                var s = NewUser.PresenceToStatus(myPresence);
+                if(s == UserStatus.Unknown) s = Me.Status;
+                return s;
             }
             set { SetStatus(value); }
         }
@@ -109,7 +109,7 @@ namespace Skylabs.Lobby
             Xmpp.OnRosterEnd += XmppOnOnRosterEnd;
             Xmpp.OnRosterStart += XmppOnOnRosterStart;
             Xmpp.OnMessage += XmppOnOnMessage;
-            Xmpp.OnPresence += XmppOnOnPresence;
+            Xmpp.OnPresence += this.XmppOnPresence;
             Xmpp.OnAgentItem += XmppOnOnAgentItem;
             Xmpp.OnIq += XmppOnOnIq;
             Xmpp.OnReadXml += XmppOnOnReadXml;
@@ -133,9 +133,6 @@ namespace Skylabs.Lobby
 
         private void XmppOnOnReadSocketData(object sender, byte[] data, int count)
         {
-#if(DEBUG)
-            Trace.WriteLine("[Xmpp]RAWin: " + Encoding.ASCII.GetString(data));
-#endif
         }
 
         private void XmppOnOnStreamError(object sender, Element element)
@@ -199,17 +196,17 @@ namespace Skylabs.Lobby
                     var f = Friends.AsParallel().SingleOrDefault(x => x.User.Bare == iq.From.Bare);
                     if(f!= null)
                     {
-                    	var email = DatabaseHandler.GetUser(f.User.Bare);
-						if (String.IsNullOrWhiteSpace(email))
-						{
-							var s = iq.Vcard.GetEmailAddresses().SingleOrDefault(x => !String.IsNullOrWhiteSpace(x.UserId));
-							if (s != null)
-							{
-								f.Email = s.UserId;
-								DatabaseHandler.AddUser(f.User.Bare,f.Email);
-							}
-						}
-						else f.Email = email;
+                        var email = DatabaseHandler.GetUser(f.User.Bare);
+                        if (String.IsNullOrWhiteSpace(email))
+                        {
+                            var s = iq.Vcard.GetEmailAddresses().SingleOrDefault(x => !String.IsNullOrWhiteSpace(x.UserId));
+                            if (s != null)
+                            {
+                                f.Email = s.UserId;
+                                DatabaseHandler.AddUser(f.User.Bare,f.Email);
+                            }
+                        }
+                        else f.Email = email;
                     }
 
                     if(OnDataRecieved != null)
@@ -259,53 +256,108 @@ namespace Skylabs.Lobby
 
         }
 
-        private void XmppOnOnPresence(object sender, Presence pres)
+        private void XmppOnPresence(object sender, Presence pres)
         {
-			//if (pres.From.User != "lobby") Debugger.Break();
-            if (pres.From.User == Xmpp.MyJID.User)
+            // Most of this if block handles the status if logged in somewhere else as well.
+            if (pres.From.User == this.Xmpp.MyJID.User)
             {
-				if (pres.Type == PresenceType.subscribe)
-				{
-					Xmpp.PresenceManager.ApproveSubscriptionRequest(pres.From);
-				}
-				else
-				{
-					myPresence = pres;
-					myPresence.Type = PresenceType.available;
-					if(pres.Show != ShowType.NONE)
-						myPresence.Show = pres.Show;
-					Xmpp.Status = myPresence.Status ?? Xmpp.Status;
-					if(OnDataRecieved != null) OnDataRecieved.Invoke(this , DataRecType.MyInfo , pres);
-					
-				}
-				return;
+                if (pres.Type == PresenceType.subscribe)
+                {
+                    this.Xmpp.PresenceManager.ApproveSubscriptionRequest(pres.From);
+                }
+                else
+                {
+                    this.myPresence = pres;
+                    this.myPresence.Type = PresenceType.available;
+                    if (pres.Show != ShowType.NONE)
+                    {
+                        this.myPresence.Show = pres.Show;
+                    }
+
+                    this.Xmpp.Status = this.myPresence.Status ?? this.Xmpp.Status;
+                    if (this.OnDataRecieved != null)
+                    {
+                        this.OnDataRecieved.Invoke(this, DataRecType.MyInfo, pres);
+                    }
+                }
+
+                return;
             }
-            switch(pres.Type)
+
+            switch (pres.Type)
             {
                 case PresenceType.available:
                     if (pres.From.Server == "conference." + Host)
                     {
-                        var rm = Chatting.GetRoom(new NewUser(pres.From), true);
+                        var addUser = new NewUser(pres.MucUser.Item.Jid);
+                        var rm = this.Chatting.GetRoom(new NewUser(pres.From), true);
+                        switch (pres.MucUser.Item.Affiliation)
+                        {
+                            case Affiliation.none:
+                                break;
+                            case Affiliation.owner:
+                                rm.OwnerList.Add(addUser);
+                                break;
+                            case Affiliation.admin:
+                                rm.AdminList.Add(addUser);
+                                break;
+                            case Affiliation.member:
+                                break;
+                            case Affiliation.outcast:
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
+                        switch (pres.MucUser.Item.Role)
+                        {
+                            case Role.none:
+                                break;
+                            case Role.moderator:
+                                rm.ModeratorList.Add(addUser);
+                                break;
+                            case Role.participant:
+                                break;
+                            case Role.visitor:
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
                         rm.AddUser(new NewUser(pres.MucUser.Item.Jid),false);
                     }
+
                 break;
                 case PresenceType.unavailable:
                 {
                     if (pres.From.Server == "conference." + Host)
                     {
-                        if (pres.MucUser.Item.Jid == null) break;
-                        if (pres.MucUser.Item.Jid.Bare == Me.User.Bare) break;
-                        var rm = Chatting.GetRoom(new NewUser(pres.From),true);
+                        if (pres.MucUser.Item.Jid == null)
+                        {
+                            break;
+                        }
+
+                        if (pres.MucUser.Item.Jid.Bare == this.Me.User.Bare)
+                        {
+                            break;
+                        }
+
+                        var rm = this.Chatting.GetRoom(new NewUser(pres.From), true);
                         rm.UserLeft(new NewUser(pres.MucUser.Item.Jid));
                     }
+
                     break;
                 }
+
                 case PresenceType.subscribe:
-                    if (!Friends.Contains(new NewUser(pres.From.Bare)))
+                    if (!this.Friends.Contains(new NewUser(pres.From.Bare)))
                     {
-                        Notifications.Add(new FriendRequestNotification(pres.From.Bare , this , _noteId));
-                        _noteId++;
-                        if(OnFriendRequest != null) OnFriendRequest.Invoke(this , pres.From.Bare);
+                        this.Notifications.Add(new FriendRequestNotification(pres.From.Bare, this, this._noteId));
+                        this._noteId++;
+                        if (this.OnFriendRequest != null)
+                        {
+                            this.OnFriendRequest.Invoke(this, pres.From.Bare);
+                        }
                     }
                     else
                         AcceptFriendship(pres.From.Bare);
@@ -321,16 +373,18 @@ namespace Skylabs.Lobby
                 case PresenceType.probe:
                     break;
             }
-            for(int i=0;i<Friends.Count;i++)
+
+            foreach (NewUser t in this.Friends)
             {
-                if(Friends[i].User.User == pres.From.User)
+                if (t.User.User == pres.From.User)
                 {
-                    Friends[i].CustomStatus = pres.Status ?? "";
-                    Friends[i].SetStatus(pres);
+                    t.CustomStatus = pres.Status ?? string.Empty;
+                    t.SetStatus(pres);
                     break;
                 }
             }
-            XmppOnOnRosterEnd(this);
+
+            this.XmppOnOnRosterEnd(this);
         }
 
         private void XmppOnOnMessage(object sender, Message msg)
@@ -370,8 +424,8 @@ namespace Skylabs.Lobby
                 }
                 else if(msg.From.Bare.ToLower() == Xmpp.MyJID.Server.ToLower())
                 {
-                    if (msg.Subject == null) msg.Subject = "";
-                    if (msg.Body == null) msg.Body = "";
+                    if (msg.Subject == null) msg.Subject = string.Empty;
+                    if (msg.Body == null) msg.Body = string.Empty;
                     var d = new Dictionary<string , string>();
                     d["Message"] = msg.Body;
                     d["Subject"] = msg.Subject;
@@ -390,30 +444,30 @@ namespace Skylabs.Lobby
         {
             foreach(var n in Friends)
             {
-            	var email = DatabaseHandler.GetUser(n.User.Bare);
-				if (String.IsNullOrWhiteSpace(email))
-				{
-					/*
-					var viq = new VcardIq
-					{
-						Type = IqType.get ,
-						To = n.User.Bare
-					};
-					viq.From = Me.User.Bare;
-					viq.Vcard.JabberId = n.User.Bare;
-					viq.GenerateId();
-					Xmpp.Send(viq);
-					 */
-				}
-				else
-				{
-					n.Email = email;
-				}
+                var email = DatabaseHandler.GetUser(n.User.Bare);
+                if (String.IsNullOrWhiteSpace(email))
+                {
+                    /*
+                    var viq = new VcardIq
+                    {
+                        Type = IqType.get ,
+                        To = n.User.Bare
+                    };
+                    viq.From = Me.User.Bare;
+                    viq.Vcard.JabberId = n.User.Bare;
+                    viq.GenerateId();
+                    Xmpp.Send(viq);
+                     */
+                }
+                else
+                {
+                    n.Email = email;
+                }
             }
             if(OnDataRecieved != null)
                 OnDataRecieved.Invoke(this,DataRecType.FriendList,Friends);
             if (Chatting.Rooms.Count(x => x.IsGroupChat && x.GroupUser.User.Bare == "lobby@conference." + Host) == 0)
-				Xmpp.RosterManager.AddRosterItem(new Jid("lobby@conference." + Host));
+                Xmpp.RosterManager.AddRosterItem(new Jid("lobby@conference." + Host));
         }
 
         private void XmppOnOnRosterItem(object sender, RosterItem item)
@@ -422,23 +476,23 @@ namespace Skylabs.Lobby
             switch(item.Subscription)
             {
                 case SubscriptionType.none:
-					if (item.Jid.Server == "conference." + Host)
+                    if (item.Jid.Server == "conference." + Host)
                     {
                         Chatting.GetRoom(new NewUser(item.Jid),true);
                     }
                     break;
                 case SubscriptionType.to:
-					if (item.Jid.User == Me.User.User) break;
+                    if (item.Jid.User == Me.User.User) break;
                     if(Friends.Count(x=>x.User.User == item.Jid.User) == 0)
                         Friends.Add(new NewUser(item.Jid));
                     break;
                 case SubscriptionType.from:
-					if (item.Jid.User == Me.User.User) break;
+                    if (item.Jid.User == Me.User.User) break;
                     if(Friends.Count(x=>x.User.User == item.Jid.User) == 0)
                     Friends.Add(new NewUser(item.Jid));
                     break;
                 case SubscriptionType.both:
-					if (item.Jid.User == Me.User.User) break;
+                    if (item.Jid.User == Me.User.User) break;
                     if(Friends.Count(x=>x.User.User == item.Jid.User) == 0)
                     Friends.Add(new NewUser(item.Jid));
                     break;
@@ -459,14 +513,14 @@ namespace Skylabs.Lobby
         private void XmppOnOnLogin(object sender)
         {
             myPresence.Type = PresenceType.available;
-        	myPresence.Show = ShowType.chat;
+            myPresence.Show = ShowType.chat;
             MucManager = new MucManager(Xmpp);
-			Jid room = new Jid("lobby@conference." + Host);
+            Jid room = new Jid("lobby@conference." + Host);
             MucManager.AcceptDefaultConfiguration(room);
             //MucManager.JoinRoom(room,Username,Password,false);
             Me = new NewUser(Xmpp.MyJID);
-			Me.SetStatus(UserStatus.Online);
-			Xmpp.PresenceManager.Subscribe(Xmpp.MyJID);
+            Me.SetStatus(UserStatus.Online);
+            Xmpp.PresenceManager.Subscribe(Xmpp.MyJID);
             FireLoginComplete(LoginResults.Success);
         }
 
@@ -490,19 +544,19 @@ namespace Skylabs.Lobby
 
         private void XmppOnOnRegistered(object sender)
         {
-			Vcard v = new Vcard();
-			Email e = new Email
-			{
-				UserId = _email,
-				Type = EmailType.INTERNET,
-				Value = _email
-			};
-			v.AddChild(e);
-			v.JabberId = new Jid(this.Username + "@" + Host);
-			VcardIq vc = new VcardIq(IqType.set, v);
-			vc.To = Host;
-			vc.GenerateId();
-			Xmpp.Send(vc);
+            Vcard v = new Vcard();
+            Email e = new Email
+            {
+                UserId = _email,
+                Type = EmailType.INTERNET,
+                Value = _email
+            };
+            v.AddChild(e);
+            v.JabberId = new Jid(this.Username + "@" + Host);
+            VcardIq vc = new VcardIq(IqType.set, v);
+            vc.To = Host;
+            vc.GenerateId();
+            Xmpp.Send(vc);
             if(OnRegisterComplete != null)
                 OnRegisterComplete.Invoke(this,RegisterResults.Success);
         }
@@ -570,14 +624,14 @@ namespace Skylabs.Lobby
         public void BeginHostGame(Game game, string gamename)
         {
             var data = String.Format("{0},:,{1},:,{2}",game.Id.ToString(),game.Version.ToString(),gamename);
-			var m = new Message(new Jid("gameserv@" + Host), Me.User, MessageType.normal, data, "hostgame");
+            var m = new Message(new Jid("gameserv@" + Host), Me.User, MessageType.normal, data, "hostgame");
             m.GenerateId();
             Xmpp.Send(m);
         }
 
         public void BeginGetGameList() 
         {
-			var m = new Message(new Jid("gameserv@" + Host), MessageType.normal, "", "gamelist");
+            var m = new Message(new Jid("gameserv@" + Host), MessageType.normal, string.Empty, "gamelist");
             m.GenerateId();
             Xmpp.Send(m);
         }
@@ -623,25 +677,25 @@ namespace Skylabs.Lobby
                     p = new Presence(ShowType.NONE, Xmpp.Status);
                     p.Type = PresenceType.available;
                     Xmpp.Send(p);
-					Xmpp.SendMyPresence();
+                    Xmpp.SendMyPresence();
                     break;
                 case UserStatus.Away:
                     p = new Presence(ShowType.away, Xmpp.Status);
                     p.Type = PresenceType.available;
                     Xmpp.Send(p);
-					Xmpp.SendMyPresence();
+                    Xmpp.SendMyPresence();
                     break;
                 case UserStatus.DoNotDisturb:
                     p = new Presence(ShowType.dnd, Xmpp.Status);
                     p.Type = PresenceType.available;
                     Xmpp.Send(p);
-					Xmpp.SendMyPresence();
+                    Xmpp.SendMyPresence();
                     break;
                 case UserStatus.Invisible:                    
                     p = new Presence(ShowType.NONE, Xmpp.Status);
                     p.Type = PresenceType.invisible;
                     Xmpp.Send(p);
-					Xmpp.SendMyPresence();
+                    Xmpp.SendMyPresence();
                     break;
             }
             Me.SetStatus(status);
@@ -670,7 +724,7 @@ namespace Skylabs.Lobby
         
         public void HostedGameStarted()
         {
-			var m = new Message("gameserv@" + Host, MessageType.normal, CurrentHostedGamePort.ToString(),
+            var m = new Message("gameserv@" + Host, MessageType.normal, CurrentHostedGamePort.ToString(),
                                 "gamestarted");
             Xmpp.Send(m);
         }

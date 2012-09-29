@@ -274,11 +274,18 @@ namespace Octgn.Controls
                     ci.IsMod = true;
                 }
 
+                if (this.room.OwnerList.Any(x => x.User.User == u.User.User))
+                {
+                    ci.IsOwner = true;
+                }
+
                 ci.User = u;
                 userListItemList.Add(ci);
             }
 
-            foreach (var u in userListItemList.OrderByDescending(x => x.IsAdmin).ThenByDescending(x => x.IsMod))
+            foreach (
+                var u in
+                    userListItemList.OrderByDescending(x => x.IsOwner).ThenByDescending(x => x.IsAdmin).ThenByDescending(x => x.IsMod))
             {
                 UserList.Items.Add(u);
             }
