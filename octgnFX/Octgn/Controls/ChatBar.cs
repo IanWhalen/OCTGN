@@ -84,7 +84,7 @@ namespace Octgn.Controls
         private void LobbyCreateRoom(object sender, NewChatRoom room)
         {
             var r = room;
-            this.Dispatcher.BeginInvoke(new Action(() =>
+            this.Dispatcher.Invoke(new Action(() =>
                 {
                     var chatBarItem = new ChatBarItem(r) { Height = this.barHeight.Value };
                     chatBarItem.HeaderMouseUp += ChatBarItemOnPreviewMouseUp;
