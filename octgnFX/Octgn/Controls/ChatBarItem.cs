@@ -90,6 +90,17 @@ namespace Octgn.Controls
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(21) });
 
+            // Create close button
+            var borderClose = new Border { Width = 16, Height = 16, HorizontalAlignment = HorizontalAlignment.Right };
+            var imageClose = new Image()
+                {
+                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/close.png")), 
+                    Stretch = Stretch.Uniform, 
+                    VerticalAlignment = VerticalAlignment.Stretch, 
+                    HorizontalAlignment = HorizontalAlignment.Stretch
+                };
+
+
             // Create item label
             var label = new TextBlock() { VerticalAlignment = VerticalAlignment.Center };
             if (this.IsInDesignMode() || this.room == null)
@@ -101,6 +112,12 @@ namespace Octgn.Controls
                 if (this.room.GroupUser != null)
                 {
                     label.Inlines.Add(new Run(this.room.GroupUser.User.User));
+
+                    // Lobby should never be able to be silenced.
+                    if (this.room.GroupUser.User.User.ToLowerInvariant() == "lobby")
+                    {
+                        borderClose.Visibility = Visibility.Collapsed;
+                    }
                 }
                 else
                 {
@@ -111,17 +128,18 @@ namespace Octgn.Controls
                         label.Inlines.Add(new Run(otherUser.User.User));
                     }
                 }
-            }
 
-            // Create close button
-            var borderClose = new Border { Width = 16, Height = 16, HorizontalAlignment = HorizontalAlignment.Right };
-            var imageClose = new Image()
-                {
-                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/close.png")), 
-                    Stretch = Stretch.Uniform, 
-                    VerticalAlignment = VerticalAlignment.Stretch, 
-                    HorizontalAlignment = HorizontalAlignment.Stretch
-                };
+                borderClose.MouseLeftButtonUp += this.BorderCloseOnMouseLeftButtonUp;
+                this.room.OnMessageRecieved += (sender, @from, message, time, type) => this.Dispatcher.BeginInvoke(
+                    new Action(
+                               () =>
+                                   {
+                                       if (this.Visibility == Visibility.Collapsed)
+                                       {
+                                           this.Visibility = Visibility.Visible;
+                                       }
+                                   }));
+            }
 
             // --Add items to items
 
@@ -141,6 +159,29 @@ namespace Octgn.Controls
             // Add main grid to this
             this.Header = mainBorder;
             mainBorder.PreviewMouseUp += this.MainBorderOnPreviewMouseUp;
+        }
+
+        /// <summary>
+        /// This fires when the 'x' button is clicked to close a chat.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="mouseButtonEventArgs">
+        /// The mouse button event arguments.
+        /// </param>
+        private void BorderCloseOnMouseLeftButtonUp(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+        {
+            this.room.LeaveRoom();
+            this.Visibility = Visibility.Collapsed;
+            mouseButtonEventArgs.Handled = true;
+
+            // We do this because if we don't, it will cause the tab item to hide, but the chat piece will show up.
+            var chatBar = this.Parent as ChatBar;
+            if (chatBar != null)
+            {
+                chatBar.SelectedIndex = 0;
+            }
         }
 
         /// <summary>

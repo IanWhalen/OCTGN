@@ -60,6 +60,7 @@ namespace Octgn
 
         static Program()
         {
+#if(!DEBUG)
             var pList = Process.GetProcessesByName("OCTGN");
             if(pList != null && pList.Length > 0 && pList.Any(x=>x.Id != Process.GetCurrentProcess().Id))
             {
@@ -73,7 +74,7 @@ namespace Octgn
                     }
                 }
             }
-
+#endif
 
 
             Debug.Listeners.Add(DebugListener);
