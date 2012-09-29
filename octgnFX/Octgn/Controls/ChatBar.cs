@@ -89,6 +89,7 @@ namespace Octgn.Controls
                     var chatBarItem = new ChatBarItem(r) { Height = this.barHeight.Value };
                     chatBarItem.HeaderMouseUp += ChatBarItemOnPreviewMouseUp;
                     this.Items.Add(chatBarItem);
+                    this.SelectedItem = chatBarItem;
                 }));
         }
 
