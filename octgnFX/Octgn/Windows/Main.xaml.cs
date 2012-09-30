@@ -12,8 +12,6 @@ namespace Octgn.Windows
     using System;
     using System.ComponentModel;
     using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
 
     using agsXMPP;
 
@@ -114,7 +112,7 @@ namespace Octgn.Windows
             {
                 case LoginResults.Success:
                     this.SetStateOnline();
-                    this.Dispatcher.BeginInvoke(new Action(() => TabLobby.Focus()));
+                    this.Dispatcher.BeginInvoke(new Action(() => TabCommunityChat.Focus()));
                     break;
                 default:
                     this.SetStateOffline();
@@ -135,7 +133,7 @@ namespace Octgn.Windows
                 new Action(
                     () =>
                         {
-                            TabLobby.IsEnabled = false;
+                            TabCommunityChat.IsEnabled = false;
                             TabCustomGames.IsEnabled = false;
                             TabMain.Focus();
                         }));
@@ -150,7 +148,7 @@ namespace Octgn.Windows
                 new Action(
                     () =>
                         {
-                            TabLobby.IsEnabled = true;
+                            TabCommunityChat.IsEnabled = true;
                             TabCustomGames.IsEnabled = true;
                         }));
         }

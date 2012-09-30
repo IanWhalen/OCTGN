@@ -26,7 +26,7 @@
                 <Frame Source="../Launcher/Login.xaml" NavigationUIVisibility="Hidden">
                 </Frame>
             </TabItem>
-            <TabItem x:Name="TabLobby" Header="Lobby Chat">
+            <TabItem x:Name="TabCommunityChat" Header="Community Chat">
                 <Controls:LobbyChat Width="Auto" Height="Auto" x:Name="LobbyChat"/>
             </TabItem>
             <TabItem x:Name="TabCustomGames" Header="Custom Games">
