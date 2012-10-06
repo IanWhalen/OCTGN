@@ -12,6 +12,7 @@ namespace Octgn.Windows
     using System;
     using System.ComponentModel;
     using System.Windows;
+    using System.Windows.Input;
 
     using agsXMPP;
 
@@ -33,6 +34,7 @@ namespace Octgn.Windows
             ConnectBox.Visibility = Visibility.Hidden;
             Program.OctgnInstance.LobbyClient.OnStateChanged += this.LobbyClientOnOnStateChanged;
             Program.OctgnInstance.LobbyClient.OnLoginComplete += this.LobbyClientOnOnLoginComplete;
+            this.PreviewKeyUp += OnPreviewKeyUp;
             this.Closing += this.OnClosing;
         }
 
@@ -74,6 +76,25 @@ namespace Octgn.Windows
         private void OnClosing(object sender, CancelEventArgs cancelEventArgs)
         {
             Program.OctgnInstance.Close();
+        }
+
+        /// <summary>
+        /// The on preview key up.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="keyEventArgs">
+        /// The key event arguments.
+        /// </param>
+        private void OnPreviewKeyUp(object sender, KeyEventArgs keyEventArgs)
+        {
+            switch (keyEventArgs.Key)
+            {
+                case Key.Escape:
+                    ChatBar.HideChat();
+                    break;
+            }
         }
 
         #region LobbyEvents
