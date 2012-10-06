@@ -50,16 +50,6 @@ namespace Octgn.Controls
         }
 
         /// <summary>
-        /// If any private chat windows are open, minimize them.
-        /// </summary>
-        public void HideChat()
-        {
-            this.SelectedIndex = 0;
-            this.InvalidateVisual();
-            this.currentTabSelection = this.Items[0];
-        }
-
-        /// <summary>
         /// Gets or sets the height of the bar.
         /// </summary>
         public GridLength BarHeight
@@ -80,6 +70,16 @@ namespace Octgn.Controls
                         }
                     }));
             }
+        }
+
+        /// <summary>
+        /// If any private chat windows are open, minimize them.
+        /// </summary>
+        public void HideChat()
+        {
+            this.SelectedIndex = 0;
+            this.InvalidateVisual();
+            this.currentTabSelection = this.Items[0];
         }
 
         /// <summary>
