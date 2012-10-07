@@ -199,9 +199,20 @@ namespace Octgn.Controls
         /// </summary>
         private void ConstructChat()
         {
-            var chatBorder = new Border() { BorderBrush = Brushes.DarkGray, Background = Brushes.DimGray, BorderThickness = new Thickness(1),Padding = new Thickness(3) };
+            var chatBorder = new Border()
+                {
+                    BorderBrush = Brushes.DarkGray,
+                    Background = Brushes.DimGray,
+                    BorderThickness = new Thickness(1),
+                    Padding = new Thickness(3),
+                    Width = 603,
+                    Height = 253,
+                    MaxWidth = 603,
+                    MaxHeight = 253,
+                    HorizontalAlignment = HorizontalAlignment.Left
+                };
             var chatControl = new ChatControl { Width = 600, Height = 250 };
-
+            
             chatBorder.Child = chatControl;
 
             this.Content = chatBorder;
