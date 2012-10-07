@@ -94,8 +94,8 @@ namespace Octgn.Controls
             var borderClose = new Border { Width = 16, Height = 16, HorizontalAlignment = HorizontalAlignment.Right };
             var imageClose = new Image()
                 {
-                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/close.png")), 
-                    Stretch = Stretch.Uniform, 
+                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/closewindow.png")), 
+                    Stretch = Stretch.None, 
                     VerticalAlignment = VerticalAlignment.Stretch, 
                     HorizontalAlignment = HorizontalAlignment.Stretch
                 };

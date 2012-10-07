@@ -36,7 +36,7 @@ namespace Octgn.Extentions
                 if (!isInDesignMode.HasValue)
                 {
 #if SILVERLIGHT
-                    _isInDesignMode = DesignerProperties.IsInDesignTool;
+                    isInDesignMode = DesignerProperties.IsInDesignTool;
 #else
                     var prop = DesignerProperties.IsInDesignModeProperty;
                     isInDesignMode
@@ -47,6 +47,30 @@ namespace Octgn.Extentions
                 }
 
                 return isInDesignMode.Value;
+        }
+
+        /// <summary>
+        /// The is in design mode.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="bool"/>.
+        /// </returns>
+        public static bool IsInDesignMode()
+        {
+            if (!isInDesignMode.HasValue)
+            {
+#if SILVERLIGHT
+                    isInDesignMode = DesignerProperties.IsInDesignTool;
+#else
+                var prop = DesignerProperties.IsInDesignModeProperty;
+                isInDesignMode
+                    = (bool)DependencyPropertyDescriptor
+                    .FromProperty(prop, typeof(FrameworkElement))
+                    .Metadata.DefaultValue;
+#endif
+            }
+
+            return isInDesignMode.Value;
         }
     }
 }

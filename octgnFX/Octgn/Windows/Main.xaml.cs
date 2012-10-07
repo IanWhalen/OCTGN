@@ -34,7 +34,7 @@ namespace Octgn.Windows
             ConnectBox.Visibility = Visibility.Hidden;
             Program.OctgnInstance.LobbyClient.OnStateChanged += this.LobbyClientOnOnStateChanged;
             Program.OctgnInstance.LobbyClient.OnLoginComplete += this.LobbyClientOnOnLoginComplete;
-            this.PreviewKeyUp += OnPreviewKeyUp;
+            this.PreviewKeyUp += this.OnPreviewKeyUp;
             this.Closing += this.OnClosing;
         }
 
@@ -189,6 +189,20 @@ namespace Octgn.Windows
         {
             var w = new AboutWindow();
             w.ShowDialog();
+        }
+
+        /// <summary>
+        /// Exits the program. Fired from the menu item MenuExit
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The event arguments.
+        /// </param>
+        private void MenuExitClick(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

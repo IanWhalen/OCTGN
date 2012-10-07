@@ -33,12 +33,13 @@
             </TabItem>
             <TabItem Header="Matchmaking(Comming Soon)" IsEnabled="false">
             </TabItem>
+            <TabItem Header="Game Management" IsEnabled="true"></TabItem>
         </TabControl>
         <GridSplitter Width="5" Grid.Row="1" Grid.Column="1" ResizeBehavior="PreviousAndNext" Background="Black" Margin="0,25,0,0"/>
         <Menu Grid.ColumnSpan="3" Grid.Row="0">
             <MenuItem Header="_File">
                 <MenuItem x:Name="menuLogOff" Header="_Log Off" HorizontalAlignment="Left" Width="137"/>
-                <MenuItem x:Name="menuExit" Header="E_xit" HorizontalAlignment="Left" Width="137"/>
+                <MenuItem x:Name="menuExit" Header="E_xit" HorizontalAlignment="Left" Width="137" Click="MenuExitClick"/>
             </MenuItem>
             <MenuItem Header="_About">
                 <MenuItem x:Name="menuHelp" Header="_Help" HorizontalAlignment="Left" Width="137"/>

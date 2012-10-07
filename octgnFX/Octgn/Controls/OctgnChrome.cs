@@ -1,418 +1,560 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Runtime.InteropServices;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="OctgnChrome.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Interaction logic for OctgnChrome.xaml
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Controls
 {
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Runtime.InteropServices;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Data;
+    using System.Windows.Input;
+    using System.Windows.Interop;
+    using System.Windows.Media;
+    using System.Windows.Media.Imaging;
+    using System.Windows.Shapes;
+    using Octgn.Extentions;
+
     /// <summary>
     /// Interaction logic for OctgnChrome.xaml
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. This rule fucks up using regions usefully."), SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:ElementsMustAppearInTheCorrectOrder", Justification = "Reviewed. Suppression is OK here.")]
     public partial class OctgnChrome : Window
     {
-        #region Design Mode Detection
-        private static bool? _isInDesignMode;
-
-        /// <summary>
-        /// Gets a value indicating whether the control is in design mode (running in Blend
-        /// or Visual Studio).
-        /// </summary>
-        public static bool IsInDesignModeStatic
-        {
-            get
-            {
-                if (!_isInDesignMode.HasValue)
-                {
-#if SILVERLIGHT
-            _isInDesignMode = DesignerProperties.IsInDesignTool;
-#else
-                    var prop = DesignerProperties.IsInDesignModeProperty;
-                    _isInDesignMode
-                        = (bool)DependencyPropertyDescriptor
-                        .FromProperty(prop, typeof(FrameworkElement))
-                        .Metadata.DefaultValue;
-#endif
-                }
-
-                return _isInDesignMode.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the control is in design mode (running under Blend
-        /// or Visual Studio).
-        /// </summary>
-        [SuppressMessage(
-            "Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "Non static member needed for data binding")]
-        public bool IsInDesignMode
-        {
-            get
-            {
-                return IsInDesignModeStatic;
-            }
-        }
-        #endregion
-
         #region Content Property
+
         /// <summary>
-        /// Window content
+        /// The content property dependency property.
+        /// </summary>
+        public static new readonly DependencyProperty ContentProperty;
+
+        /// <summary>
+        /// Gets or sets Window content
         /// <remarks>Hides base window class 'Content' property</remarks>
         /// </summary>
         public new object Content
         {
-            get { return (object)GetValue(ContentProperty); }
-            set { SetValue(ContentProperty, value); }
+            get { return this.GetValue(ContentProperty); }
+            set { this.SetValue(ContentProperty, value); }
         }
 
-        public new static readonly DependencyProperty ContentProperty;
-
-        // called when 'Content' property changed
-        static void ContentChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
+        /// <summary>
+        /// Called when 'Content' property changed
+        /// </summary>
+        /// <param name="property">Dependency object</param>
+        /// <param name="args">Dependency Property changed arguments</param>
+        private static void ContentChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
         {
-            OctgnChrome window = (OctgnChrome)property;
+            var window = (OctgnChrome)property;
             window.ContentArea.Child = (UIElement)args.NewValue;
         }
         #endregion
 
-        public ImageSource WindowIcon
-        {
-            get { return base.Icon; }
-            set
-            {
-                base.Icon = value;
-                IconImage.Source = value;
-            }
-        }
-
         #region Background Property
+
         /// <summary>
-        /// Window background
+        /// The background property dependency property.
+        /// </summary>
+        public static new readonly DependencyProperty BackgroundProperty;
+
+        /// <summary>
+        /// Gets or sets Window background
         /// <remarks>Hides base window class 'Background' property</remarks>
         /// </summary>
         public new Brush Background
         {
-            get { return (Brush)GetValue(BackgroundProperty); }
+            get
+            {
+                return (Brush)GetValue(BackgroundProperty);
+            }
+
             set
             {
-                SetValue(BackgroundProperty, value);
-                MainBorder.Background = value;
+                this.SetValue(BackgroundProperty, value);
+                this.MainBorder.Background = value;
             }
         }
 
-        public new static readonly DependencyProperty BackgroundProperty;
-
-        // called when 'Background' property changed
-        static void BackgroundChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
+        /// <summary>
+        /// Called when Background property changed.
+        /// </summary>
+        /// <param name="property">Dependency Object</param>
+        /// <param name="args">The Arguments</param>
+        private static void BackgroundChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
         {
-            OctgnChrome window = (OctgnChrome)property;
+            var window = (OctgnChrome)property;
             window.MainBorder.Background = (Brush)args.NewValue;
         }
+
         #endregion
 
         #region Interop Junk
-        private const int WM_NCLBUTTONDOWN = 0xA1;
-        private const int HT_CAPTION = 0x2;
-        private const int WM_SYSCOMMAND = 0x112;
 
-        [DllImportAttribute("user32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        /// <summary>
+        /// Some value that means something.
+        /// </summary>
+        private const int WmSyscommand = 0x112;
 
-        [DllImportAttribute("user32.dll",CharSet=CharSet.Auto)]
-        private static extern int SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lparam);
+        [DllImportAttribute("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int SendMessage(IntPtr windowHandle, uint msg, IntPtr windowParam, IntPtr lparam);
 
-        [DllImportAttribute("user32.dll")]
-        private static extern bool ReleaseCapture();
-
+        /// <summary>
+        /// The resize direction for resizing the window.
+        /// </summary>
         private enum ResizeDirection
         {
+            /// <summary>
+            /// The left.
+            /// </summary>
             Left = 1,
+
+            /// <summary>
+            /// The right.
+            /// </summary>
             Right = 2,
+
+            /// <summary>
+            /// The top.
+            /// </summary>
             Top = 3,
+
+            /// <summary>
+            /// The top left.
+            /// </summary>
             TopLeft = 4,
+
+            /// <summary>
+            /// The top right.
+            /// </summary>
             TopRight = 5,
+
+            /// <summary>
+            /// The bottom.
+            /// </summary>
             Bottom = 6,
+
+            /// <summary>
+            /// The bottom left.
+            /// </summary>
             BottomLeft = 7,
-            BottomRight=8
+
+            /// <summary>
+            /// The bottom right.
+            /// </summary>
+            BottomRight = 8
         }
 
+        /// <summary>
+        /// Resizes the window in a given direction.
+        /// </summary>
+        /// <param name="direction">
+        /// The direction.
+        /// </param>
         private void ResizeWindow(ResizeDirection direction)
         {
-            SendMessage(new WindowInteropHelper(this).Handle, WM_SYSCOMMAND, (IntPtr) (61440 + direction), IntPtr.Zero);
+            SendMessage(new WindowInteropHelper(this).Handle, WmSyscommand, (IntPtr) (61440 + direction), IntPtr.Zero);
         }
 
         #endregion
 
+        #region public properties
+
+        /// <summary>
+        /// Gets or sets the window icon.
+        /// </summary>
+        public ImageSource WindowIcon
+        {
+            get
+            {
+                return this.Icon;
+            }
+
+            set
+            {
+                this.Icon = value;
+                this.IconImage.Source = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the minimize button visibility.
+        /// </summary>
         public Visibility MinimizeButtonVisibility
         {
-            get { return WindowMinimizeButton.Visibility; }
-            set { WindowMinimizeButton.Visibility = value; }
+            get { return this.WindowMinimizeButton.Visibility; }
+            set { this.WindowMinimizeButton.Visibility = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the min max button visibility.
+        /// </summary>
         public Visibility MinMaxButtonVisibility
         {
-            get { return WindowResizeButton.Visibility; }
-            set { WindowResizeButton.Visibility = value; }
+            get { return this.WindowResizeButton.Visibility; }
+            set { this.WindowResizeButton.Visibility = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the close button visibility.
+        /// </summary>
         public Visibility CloseButtonVisibility
         {
-            get { return WindowCloseButton.Visibility; }
-            set { WindowCloseButton.Visibility = value; }
+            get { return this.WindowCloseButton.Visibility; }
+            set { this.WindowCloseButton.Visibility = value; }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this window can resize.
+        /// </summary>
         public bool CanResize { get; set; }
 
+        #endregion 
+
+        #region private accessors
+
+        /// <summary>
+        /// Gets or sets the main border.
+        /// </summary>
         private Border MainBorder { get; set; }
+
+        /// <summary>
+        /// Gets or sets the drag grid.
+        /// </summary>
         private Grid DragGrid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the main grid.
+        /// </summary>
         private Grid MainGrid { get; set; }
-        private Grid TitleGrid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the label title.
+        /// </summary>
         private TextBlock LabelTitle { get; set; }
-        private Grid WCGrid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Window Controls grid.
+        /// </summary>
+        private Grid WcGrid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the icon image.
+        /// </summary>
         private Image IconImage { get; set; }
 
+        /// <summary>
+        /// Gets or sets the window minimize button.
+        /// </summary>
         private Border WindowMinimizeButton { get; set; }
+
+        /// <summary>
+        /// Gets or sets the window resize button.
+        /// </summary>
         private Border WindowResizeButton { get; set; }
+
+        /// <summary>
+        /// Gets or sets the window close button.
+        /// </summary>
         private Border WindowCloseButton { get; set; }
+
+        /// <summary>
+        /// Gets or sets the content area.
+        /// </summary>
         private Border ContentArea { get; set; }
 
-        private readonly Brush WindowControlHoverBrush = new SolidColorBrush(Colors.DimGray);
-        private readonly Brush WindowControlOffBrush = new SolidColorBrush(Colors.Transparent);
-        
+        /// <summary>
+        /// The window control hover brush.
+        /// </summary>
+        private readonly Brush windowControlHoverBrush = new SolidColorBrush(Colors.DimGray);
+
+        /// <summary>
+        /// The window control off brush.
+        /// </summary>
+        private readonly Brush windowControlOffBrush = new SolidColorBrush(Colors.Transparent);
+
+        #endregion
+
+        /// <summary>
+        /// Initializes static members of the <see cref="OctgnChrome"/> class.
+        /// </summary>
         static OctgnChrome()
         {
             // this checks whether application runs in design mode or not; if not the DependencyProperties are initialized
-            if (!IsInDesignModeStatic)
+            if (!ControlExtensions.IsInDesignMode())
             {
-                ContentProperty = DependencyProperty.Register("Content", typeof(object), typeof(OctgnChrome), new UIPropertyMetadata(null, new PropertyChangedCallback(ContentChangedCallback)));
-                BackgroundProperty = DependencyProperty.Register("Background", typeof(object), typeof(OctgnChrome), new UIPropertyMetadata(Brushes.Transparent, new PropertyChangedCallback(BackgroundChangedCallback)));
+                ContentProperty = DependencyProperty.Register("Content", typeof(object), typeof(OctgnChrome), new UIPropertyMetadata(null, ContentChangedCallback));
+                BackgroundProperty = DependencyProperty.Register("Background", typeof(object), typeof(OctgnChrome), new UIPropertyMetadata(Brushes.Transparent, BackgroundChangedCallback));
             }                     
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OctgnChrome"/> class.
+        /// </summary>
         public OctgnChrome()
         {
-            AllowsTransparency = true;
-            WindowStyle = WindowStyle.None;
-            ResizeMode = ResizeMode.CanResize;
+            this.AllowsTransparency = true;
+            this.WindowStyle = WindowStyle.None;
+            this.ResizeMode = ResizeMode.CanResize;
             base.Background = Brushes.Transparent;
-            CanResize = true;
-            MainBorder = new Border();
-            MainBorder.CornerRadius = new CornerRadius(5);
-            MainBorder.SetResourceReference(Border.BackgroundProperty, "ControlBackgroundBrush");
-            //MainBorder.Background = Resour new SolidColorBrush(Color.FromRgb(35, 35, 35));
-            base.Content = MainBorder;
+            this.CanResize = true;
+            this.MainBorder = new Border();
+            this.MainBorder.CornerRadius = new CornerRadius(5);
+            this.MainBorder.SetResourceReference(Border.BackgroundProperty, "ControlBackgroundBrush");
+            base.Content = this.MainBorder;
 
-            MakeDrag();
+            this.MakeDrag();
 
 
-            MainGrid = new Grid();
-            MainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(35) });
-            MainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(100, GridUnitType.Star) });
-            MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });
-            MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100, GridUnitType.Star) });
-            MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
-            DragGrid.Children.Add(MainGrid);
-            Grid.SetColumn(MainGrid, 1);
-            Grid.SetRow(MainGrid, 1);
+            this.MainGrid = new Grid();
+            this.MainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(35) });
+            this.MainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(100, GridUnitType.Star) });
+            this.MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });
+            this.MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100, GridUnitType.Star) });
+            this.MainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
+            this.DragGrid.Children.Add(this.MainGrid);
+            Grid.SetColumn(this.MainGrid, 1);
+            Grid.SetRow(this.MainGrid, 1);
 
-             
-            //IconImage = new Image{Source = new BitmapImage(new Uri("pack://application:,,,/Octgn;component/Resources/Icon.ico")) };
-            IconImage = new Image();
-            IconImage.Stretch = Stretch.Uniform;
-            IconImage.Source = base.Icon;
-            IconImage.VerticalAlignment = VerticalAlignment.Center;
-            IconImage.HorizontalAlignment = HorizontalAlignment.Center;
-            MainGrid.Children.Add(IconImage);
-            //Setup content area
-            ContentArea = new Border();
-            MainGrid.Children.Add(ContentArea);
-            Grid.SetRow(ContentArea,1);
-            Grid.SetColumnSpan(ContentArea,3);
+            // IconImage = new Image{Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/Icon.ico")) };
+            this.IconImage = new Image();
+            this.IconImage.Stretch = Stretch.Uniform;
+            this.IconImage.Source = this.Icon;
+            this.IconImage.VerticalAlignment = VerticalAlignment.Center;
+            this.IconImage.HorizontalAlignment = HorizontalAlignment.Center;
+            this.MainGrid.Children.Add(this.IconImage);
 
-            //Add label
-            LabelTitle = new TextBlock();
-            LabelTitle.FontFamily = new FontFamily("Euphemia");
-            LabelTitle.FontSize = 22;
-            LabelTitle.Foreground = Brushes.DarkGray;
-            LabelTitle.FontWeight = FontWeights.Bold;
-            LabelTitle.FontStyle = FontStyles.Italic;
-            LabelTitle.DataContext = this;
-            LabelTitle.SetBinding(TextBlock.TextProperty, new Binding("Title") { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
-            LabelTitle.MouseDown += Border_MouseDown_1;
-            MainGrid.Children.Add(LabelTitle);
-            Grid.SetColumn(LabelTitle, 1);
+            // Setup content area
+            this.ContentArea = new Border();
+            this.MainGrid.Children.Add(this.ContentArea);
+            Grid.SetRow(this.ContentArea, 1);
+            Grid.SetColumnSpan(this.ContentArea, 3);
 
-            //Add window controls
-            WCGrid = new Grid();
-            WCGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            WCGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            WCGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            MainGrid.Children.Add(WCGrid);
-            Grid.SetColumn(WCGrid, 2);
+            // Add label
+            this.LabelTitle = new TextBlock();
+            this.LabelTitle.FontFamily = new FontFamily("Euphemia");
+            this.LabelTitle.FontSize = 22;
+            this.LabelTitle.Foreground = Brushes.DarkGray;
+            this.LabelTitle.FontWeight = FontWeights.Bold;
+            this.LabelTitle.FontStyle = FontStyles.Italic;
+            this.LabelTitle.DataContext = this;
+            this.LabelTitle.SetBinding(TextBlock.TextProperty, new Binding("Title") { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+            this.LabelTitle.MouseDown += this.BorderMouseDown1;
+            this.MainGrid.Children.Add(this.LabelTitle);
+            Grid.SetColumn(this.LabelTitle, 1);
 
-            WindowMinimizeButton = new Border();
-            WindowMinimizeButton.MouseEnter += WindowControlMouseEnter;
-            WindowMinimizeButton.MouseLeave += WindowControlMouseLeave;
-            WindowMinimizeButton.Focusable = true;
-            WindowMinimizeButton.PreviewMouseLeftButtonUp += (sender, args) =>
+            // Add window controls
+            this.WcGrid = new Grid();
+            this.WcGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
+            this.WcGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
+            this.WcGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
+            this.MainGrid.Children.Add(this.WcGrid);
+            Grid.SetColumn(this.WcGrid, 2);
+
+            this.WindowMinimizeButton = new Border();
+            this.WindowMinimizeButton.MouseEnter += this.WindowControlMouseEnter;
+            this.WindowMinimizeButton.MouseLeave += this.WindowControlMouseLeave;
+            this.WindowMinimizeButton.Focusable = true;
+            this.WindowMinimizeButton.PreviewMouseLeftButtonUp += (sender, args) =>
                                                 {
                                                     WindowState = WindowState.Minimized;
                                                     args.Handled = true;
                                                 };
-            WindowMinimizeButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/Octgn;component/Resources/minimize.png")) };
-            WCGrid.Children.Add(WindowMinimizeButton);
-            Grid.SetColumn(WindowMinimizeButton, 0);
+            this.WindowMinimizeButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/minimize.png")) };
+            this.WcGrid.Children.Add(this.WindowMinimizeButton);
+            Grid.SetColumn(this.WindowMinimizeButton, 0);
 
-            WindowResizeButton = new Border();
-            WindowResizeButton.MouseEnter += WindowControlMouseEnter;
-            WindowResizeButton.MouseLeave += WindowControlMouseLeave;
-            WindowResizeButton.Focusable = true;
-            WindowResizeButton.PreviewMouseLeftButtonUp += (sender, args) =>
+            this.WindowResizeButton = new Border();
+            this.WindowResizeButton.MouseEnter += this.WindowControlMouseEnter;
+            this.WindowResizeButton.MouseLeave += this.WindowControlMouseLeave;
+            this.WindowResizeButton.Focusable = true;
+            this.WindowResizeButton.PreviewMouseLeftButtonUp += (sender, args) =>
                                                                {
                                                                    WindowState = (WindowState == WindowState.Maximized)
                                                                                      ? WindowState.Normal
                                                                                      : WindowState.Maximized;
                                                                    args.Handled = true;
                                                                };
-            WindowResizeButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/Octgn;component/Resources/minmax.png")) };
-            WCGrid.Children.Add(WindowResizeButton);
-            Grid.SetColumn(WindowResizeButton, 1);
+            this.WindowResizeButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/minmax.png")) };
+            this.WcGrid.Children.Add(this.WindowResizeButton);
+            Grid.SetColumn(this.WindowResizeButton, 1);
 
-            WindowCloseButton = new Border();
-            WindowCloseButton.MouseEnter += WindowControlMouseEnter;
-            WindowCloseButton.MouseLeave += WindowControlMouseLeave;
-            WindowCloseButton.Focusable = true;
-            WindowCloseButton.PreviewMouseLeftButtonUp += (sender, args) =>
+            this.WindowCloseButton = new Border();
+            this.WindowCloseButton.MouseEnter += this.WindowControlMouseEnter;
+            this.WindowCloseButton.MouseLeave += this.WindowControlMouseLeave;
+            this.WindowCloseButton.Focusable = true;
+            this.WindowCloseButton.PreviewMouseLeftButtonUp += (sender, args) =>
                                                               {
                                                                   Close();
                                                                   args.Handled = true;
                                                               };
-            WindowCloseButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/Octgn;component/Resources/closewindow.png")) };
-            WCGrid.Children.Add(WindowCloseButton);
-            Grid.SetColumn(WindowCloseButton, 2);
-
+            this.WindowCloseButton.Child = new Image() { Stretch = Stretch.None, Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/closewindow.png")) };
+            this.WcGrid.Children.Add(this.WindowCloseButton);
+            Grid.SetColumn(this.WindowCloseButton, 2);
         }
 
+        /// <summary>
+        /// The window control mouse leave.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="mouseEventArgs">
+        /// The mouse event arguments.
+        /// </param>
         private void WindowControlMouseLeave(object sender, MouseEventArgs mouseEventArgs)
         {
             var s = sender as Border;
-            s.Background = WindowControlOffBrush;
+            s.Background = this.windowControlOffBrush;
         }
 
+        /// <summary>
+        /// The window control mouse enter.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="mouseEventArgs">
+        /// The mouse event arguments.
+        /// </param>
         private void WindowControlMouseEnter(object sender, MouseEventArgs mouseEventArgs)
         {
             var s = sender as Border;
-            s.Background = WindowControlHoverBrush;
+            if (s != null)
+            {
+                s.Background = this.windowControlHoverBrush;
+            }
         }
 
+        /// <summary>
+        /// Makes the resize area around the window.
+        /// </summary>
         private void MakeDrag()
         {
-            DragGrid = new Grid();
-            DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(8) });
-            DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(100, GridUnitType.Star) });
-            DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(8) });
-            DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(8) });
-            DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(100, GridUnitType.Star) });
-            DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(8) });
+            this.DragGrid = new Grid();
+            this.DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(8) });
+            this.DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(100, GridUnitType.Star) });
+            this.DragGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(8) });
+            this.DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(8) });
+            this.DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(100, GridUnitType.Star) });
+            this.DragGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(8) });
 
-            var tTopLeft = new Rectangle { Cursor = Cursors.SizeNWSE, Name = "dTopLeft" ,Fill = Brushes.Transparent};
-            tTopLeft.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tTopLeft);
+            var recTopLeft = new Rectangle { Cursor = Cursors.SizeNWSE, Name = "dTopLeft", Fill = Brushes.Transparent };
+            recTopLeft.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recTopLeft);
 
-            var tTop = new Rectangle { Cursor = Cursors.SizeNS, Name = "dTop"  ,Fill = Brushes.Transparent};
-            tTop.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tTop);
-            Grid.SetColumn(tTop, 1);
+            var recTop = new Rectangle { Cursor = Cursors.SizeNS, Name = "dTop", Fill = Brushes.Transparent };
+            recTop.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recTop);
+            Grid.SetColumn(recTop, 1);
 
-            var tTopRight = new Rectangle { Cursor = Cursors.SizeNESW, Name = "dTopRight"  ,Fill = Brushes.Transparent};
-            tTopRight.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tTopRight);
-            Grid.SetColumn(tTopRight, 2);
+            var recTopRight = new Rectangle
+                { Cursor = Cursors.SizeNESW, Name = "dTopRight", Fill = Brushes.Transparent };
+            recTopRight.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recTopRight);
+            Grid.SetColumn(recTopRight, 2);
 
-            var tLeft = new Rectangle { Cursor = Cursors.SizeWE, Name = "dLeft"  ,Fill = Brushes.Transparent};
-            tLeft.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tLeft);
-            Grid.SetRow(tLeft, 1);
+            var recLeft = new Rectangle { Cursor = Cursors.SizeWE, Name = "dLeft", Fill = Brushes.Transparent };
+            recLeft.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recLeft);
+            Grid.SetRow(recLeft, 1);
 
-            var tRight = new Rectangle { Cursor = Cursors.SizeWE, Name = "dRight"  ,Fill = Brushes.Transparent};
-            tRight.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tRight);
-            Grid.SetRow(tRight, 1);
-            Grid.SetColumn(tRight,2);
+            var recRight = new Rectangle { Cursor = Cursors.SizeWE, Name = "dRight", Fill = Brushes.Transparent };
+            recRight.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recRight);
+            Grid.SetRow(recRight, 1);
+            Grid.SetColumn(recRight, 2);
 
-            var tBottomLeft = new Rectangle { Cursor = Cursors.SizeNESW, Name = "dBottomLeft"  ,Fill = Brushes.Transparent};
-            tBottomLeft.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tBottomLeft);
-            Grid.SetRow(tBottomLeft, 2);
+            var recBottomLeft = new Rectangle
+                { Cursor = Cursors.SizeNESW, Name = "dBottomLeft", Fill = Brushes.Transparent };
+            recBottomLeft.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recBottomLeft);
+            Grid.SetRow(recBottomLeft, 2);
 
-            var tBottom = new Rectangle { Cursor = Cursors.SizeNS, Name = "dBottom"  ,Fill = Brushes.Transparent};
-            tBottom.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tBottom);
-            Grid.SetColumn(tBottom, 1);
-            Grid.SetRow(tBottom, 2);
+            var recBottom = new Rectangle { Cursor = Cursors.SizeNS, Name = "dBottom", Fill = Brushes.Transparent };
+            recBottom.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recBottom);
+            Grid.SetColumn(recBottom, 1);
+            Grid.SetRow(recBottom, 2);
 
-            var tBottomRight = new Rectangle { Cursor = Cursors.SizeNWSE, Name = "dBottomRight"  ,Fill = Brushes.Transparent};
-            tBottomRight.MouseDown += DragMouseDown;
-            DragGrid.Children.Add(tBottomRight);
-            Grid.SetColumn(tBottomRight, 2);
-            Grid.SetRow(tBottomRight, 2);
+            var recBottomRight = new Rectangle
+                { Cursor = Cursors.SizeNWSE, Name = "dBottomRight", Fill = Brushes.Transparent };
+            recBottomRight.MouseDown += this.DragMouseDown;
+            this.DragGrid.Children.Add(recBottomRight);
+            Grid.SetColumn(recBottomRight, 2);
+            Grid.SetRow(recBottomRight, 2);
 
-            MainBorder.Child = DragGrid;
+            this.MainBorder.Child = this.DragGrid;
         }
 
+        /// <summary>
+        /// When the mouse goes down on the resize area.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="mouseButtonEventArgs">
+        /// The mouse button event args.
+        /// </param>
         private void DragMouseDown(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
-            if (!CanResize) return;
+            if (!this.CanResize)
+            {
+                return;
+            }
+            
             var s = sender as Rectangle;
+            if (s == null)
+            {
+                return;
+            }
             switch (s.Name)
             {
                 case "dTopLeft":
-                    ResizeWindow(ResizeDirection.TopLeft);
+                    this.ResizeWindow(ResizeDirection.TopLeft);
                     break;
                 case "dTop":
-                    ResizeWindow(ResizeDirection.Top);
+                    this.ResizeWindow(ResizeDirection.Top);
                     break;
                 case "dTopRight":
-                    ResizeWindow(ResizeDirection.TopRight);
+                    this.ResizeWindow(ResizeDirection.TopRight);
                     break;
                 case "dLeft":
-                    ResizeWindow(ResizeDirection.Left);
+                    this.ResizeWindow(ResizeDirection.Left);
                     break;
                 case "dRight":
-                    ResizeWindow(ResizeDirection.Right);
+                    this.ResizeWindow(ResizeDirection.Right);
                     break;
                 case "dBottomLeft":
-                    ResizeWindow(ResizeDirection.BottomLeft);
+                    this.ResizeWindow(ResizeDirection.BottomLeft);
                     break;
                 case "dBottom":
-                    ResizeWindow(ResizeDirection.Bottom);
+                    this.ResizeWindow(ResizeDirection.Bottom);
                     break;
                 case "dBottomRight":
-                    ResizeWindow(ResizeDirection.BottomRight);
+                    this.ResizeWindow(ResizeDirection.BottomRight);
                     break;
             }
         }
 
-        private void Border_MouseDown_1(object sender, MouseButtonEventArgs e)
+        /// <summary>
+        /// Mouse down event on the main border.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The event arguments.
+        /// </param>
+        private void BorderMouseDown1(object sender, MouseButtonEventArgs e)
         {
-            DragMove();
-           // e.Handled = false;
-            //MouseUp(sender, e);
-            //ReleaseCapture();
-            //SendMessage(new WindowInteropHelper(this).Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            this.DragMove();
         }
     }
 }
