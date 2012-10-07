@@ -1,14 +1,21 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using agsXMPP;
-using agsXMPP.protocol.client;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="NewUser.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Defines the UserStatus type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Skylabs.Lobby
 {
+    using System;
+    using System.Collections;
+    using System.Diagnostics;
+
+    using agsXMPP;
+    using agsXMPP.protocol.client;
+
     public enum UserStatus
     {
         Unknown = 0,
@@ -90,21 +97,30 @@ namespace Skylabs.Lobby
         {
             string rid1 = null;
             string rid2 = null;
-            try
+
+            // null must be on the left side of a, or we get a stack overflow
+            if (null != a as object && a.User != null && a.User.Bare != null)
             {
                 rid1 = a.User.Bare;
             }
-            catch { }
-            try
+
+            // null must be on the left side of b, or we get a stack overflow.
+            if (null != b as object && b.User != null && b.User.Bare != null)
             {
                 rid2 = b.User.Bare;
             }
-            catch { }
 
-            if (rid1 == null && rid2 == null) return true;
+            if (rid1 == null && rid2 == null)
+            {
+                return true;
+            }
+
             return rid1 == rid2;
         }
-        public static bool operator !=(NewUser a , NewUser b) { return !(a == b); }
+        public static bool operator !=(NewUser a , NewUser b)
+        {
+            return !(a == b);
+        }
         public override string ToString() { return User.User; }
         public new bool Equals(object x, object y) { return x == y; }
         public int GetHashCode(object obj) { return obj.GetHashCode(); }
