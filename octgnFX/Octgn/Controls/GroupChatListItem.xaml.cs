@@ -52,7 +52,7 @@ namespace Octgn.Controls
                 {
                     _chatRoomId = value.Rid;
                     image1.Opacity = 1;
-                    SetValue(UsernameProperty , value.GroupUser.User.User);
+                    SetValue(UsernameProperty , value.GroupUser.UserName);
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace Octgn.Controls
 
         private void Image1MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (_chatRoom.GroupUser.User.User == "lobby") return;
+            if (_chatRoom.GroupUser.UserName == "lobby") return;
             _isRemoving = true;
         }
     }

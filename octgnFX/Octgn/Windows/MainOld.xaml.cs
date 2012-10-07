@@ -179,7 +179,7 @@ namespace Octgn.Windows
                         rgStatus.LargeImageSource = bOfflineStatus.LargeImageSource;
                         break;
                 }
-                Prefs.Nickname = Program.LobbyClient.Me.User.User;
+                Prefs.Nickname = Program.LobbyClient.Me.UserName;
             }
             ));
         }

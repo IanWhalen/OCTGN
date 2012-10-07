@@ -70,7 +70,7 @@ namespace Octgn.Controls
                 Dispatcher.BeginInvoke(new Action(() =>
                                                       {
                                                           UsernameParagraph.Inlines.Clear();
-                                                          UsernameParagraph.Inlines.Add(new Run(this.user.User.User));
+                                                          UsernameParagraph.Inlines.Add(new Run(this.user.UserName));
                                                           UsernameColumn.Width = new GridLength(GetUsernameWidth());
                                                       }));
             }
@@ -128,7 +128,7 @@ namespace Octgn.Controls
         private double GetUsernameWidth()
         {
             var f = new FormattedText(
-                this.User.User.User,
+                this.User.UserName,
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
                 new Typeface("Arial"),

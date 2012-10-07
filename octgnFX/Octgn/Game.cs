@@ -65,7 +65,7 @@ namespace Octgn
                 if (Program.OctgnInstance.LobbyClient == null || Program.OctgnInstance.LobbyClient.Me == null)
                     nick = "User" + new Random().Next().ToString(CultureInfo.InvariantCulture);
                 else
-                    nick = Program.OctgnInstance.LobbyClient.Me.User.User;
+                    nick = Program.OctgnInstance.LobbyClient.Me.UserName;
             }
         }
 

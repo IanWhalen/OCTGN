@@ -28,7 +28,7 @@ namespace Octgn.Controls
                 _user = value;
                 Dispatcher.BeginInvoke(new Action(() =>
                                                       {
-                                                          UserNameTextBox.Text = _user.User.User;
+                                                          UserNameTextBox.Text = _user.UserName;
                                                       }));
             }
         }

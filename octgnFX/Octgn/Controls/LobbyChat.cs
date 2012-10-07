@@ -35,7 +35,7 @@ namespace Octgn.Controls
         /// </param>
         private void Chatting_OnCreateRoom(object sender, NewChatRoom createdroom)
         {
-            if (createdroom.GroupUser == null || createdroom.GroupUser.User.User != "lobby" || this.Room != null)
+            if (createdroom.GroupUser == null || createdroom.GroupUser.UserName != "lobby" || this.Room != null)
             {
                 return;
             }

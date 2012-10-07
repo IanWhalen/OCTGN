@@ -140,9 +140,9 @@ namespace Octgn.Controls
             var theMessage = message;
             var therTime = receiveTime;
             var themType = messageType;
-            if (string.IsNullOrWhiteSpace(theFrom.User.User))
+            if (string.IsNullOrWhiteSpace(theFrom.UserName))
             {
-                theFrom.User.User = "SYSTEM";
+                theFrom.UserName = "SYSTEM";
             }
 
             Dispatcher.Invoke(
@@ -202,8 +202,8 @@ namespace Octgn.Controls
                                         continue;
                                     }
 
-                                    if (rr.User.User.User
-                                        == theFrom.User.User)
+                                    if (rr.User.UserName
+                                        == theFrom.UserName)
                                     {
                                         r.Background = Brushes.DimGray;
                                     }
@@ -257,24 +257,24 @@ namespace Octgn.Controls
             }
 
             var us =
-                this.room.Users.ToArray().Where(x => x.User.User.ToLower().Contains(UserFilter.Text.ToLower())).OrderBy(
-                    x => x.User.User);
+                this.room.Users.ToArray().Where(x => x.UserName.ToLower().Contains(UserFilter.Text.ToLower())).OrderBy(
+                    x => x.UserName);
             UserList.Items.Clear();
             var userListItemList = new List<ChatUserListItem>();
             foreach (var u in us)
             {
                 var ci = new ChatUserListItem();
-                if (this.room.AdminList.Any(x => x.User.User == u.User.User))
+                if (this.room.AdminList.Any(x => x.UserName == u.UserName))
                 {
                     ci.IsAdmin = true;
                 }
 
-                if (this.room.ModeratorList.Any(x => x.User.User == u.User.User))
+                if (this.room.ModeratorList.Any(x => x.UserName == u.UserName))
                 {
                     ci.IsMod = true;
                 }
 
-                if (this.room.OwnerList.Any(x => x.User.User == u.User.User))
+                if (this.room.OwnerList.Any(x => x.UserName == u.UserName))
                 {
                     ci.IsOwner = true;
                 }

@@ -614,10 +614,10 @@ namespace Skylabs.Lobby
             {
                 if (iq.Vcard != null)
                 {
-                    NewUser f = this.Friends.AsParallel().SingleOrDefault(x => x.User.Bare == iq.From.Bare);
+                    NewUser f = this.Friends.AsParallel().SingleOrDefault(x => x.FullUserName == iq.From.Bare);
                     if (f != null)
                     {
-                        string email = DatabaseHandler.GetUser(f.User.Bare);
+                        string email = DatabaseHandler.GetUser(f.FullUserName);
                         if (string.IsNullOrWhiteSpace(email))
                         {
                             Email s =
@@ -625,7 +625,7 @@ namespace Skylabs.Lobby
                             if (s != null)
                             {
                                 f.Email = s.UserId;
-                                DatabaseHandler.AddUser(f.User.Bare, f.Email);
+                                DatabaseHandler.AddUser(f.FullUserName, f.Email);
                             }
                         }
                         else
@@ -725,7 +725,7 @@ namespace Skylabs.Lobby
 
             foreach (NewUser t in this.Friends)
             {
-                if (t.User.User == pres.From.User)
+                if (t.UserName == pres.From.User)
                 {
                     t.CustomStatus = pres.Status ?? string.Empty;
                     t.SetStatus(pres);
@@ -838,7 +838,7 @@ namespace Skylabs.Lobby
         {
             foreach (NewUser n in this.Friends)
             {
-                string email = DatabaseHandler.GetUser(n.User.Bare);
+                string email = DatabaseHandler.GetUser(n.FullUserName);
                 if (string.IsNullOrWhiteSpace(email))
                 {
                     /*
@@ -864,7 +864,7 @@ namespace Skylabs.Lobby
                 this.OnDataReceived.Invoke(this, DataRecType.FriendList, this.Friends);
             }
 
-            if (this.Chatting.Rooms.Count(x => x.IsGroupChat && x.GroupUser.User.Bare == "lobby@conference." + Host)
+            if (this.Chatting.Rooms.Count(x => x.IsGroupChat && x.GroupUser.FullUserName == "lobby@conference." + Host)
                 == 0)
             {
                 this.xmpp.RosterManager.AddRosterItem(new Jid("lobby@conference." + Host));
@@ -893,36 +893,36 @@ namespace Skylabs.Lobby
 
                     break;
                 case SubscriptionType.to:
-                    if (item.Jid.User == this.Me.User.User)
+                    if (item.Jid.User == this.Me.UserName)
                     {
                         break;
                     }
 
-                    if (this.Friends.Count(x => x.User.User == item.Jid.User) == 0)
+                    if (this.Friends.Count(x => x.UserName == item.Jid.User) == 0)
                     {
                         this.Friends.Add(new NewUser(item.Jid));
                     }
 
                     break;
                 case SubscriptionType.from:
-                    if (item.Jid.User == this.Me.User.User)
+                    if (item.Jid.User == this.Me.UserName)
                     {
                         break;
                     }
 
-                    if (this.Friends.Count(x => x.User.User == item.Jid.User) == 0)
+                    if (this.Friends.Count(x => x.UserName == item.Jid.User) == 0)
                     {
                         this.Friends.Add(new NewUser(item.Jid));
                     }
 
                     break;
                 case SubscriptionType.both:
-                    if (item.Jid.User == this.Me.User.User)
+                    if (item.Jid.User == this.Me.UserName)
                     {
                         break;
                     }
 
-                    if (this.Friends.Count(x => x.User.User == item.Jid.User) == 0)
+                    if (this.Friends.Count(x => x.UserName == item.Jid.User) == 0)
                     {
                         this.Friends.Add(new NewUser(item.Jid));
                     }
@@ -1152,7 +1152,7 @@ namespace Skylabs.Lobby
         public void BeginHostGame(Game game, string gamename)
         {
             string data = string.Format("{0},:,{1},:,{2}", game.Id.ToString(), game.Version, gamename);
-            var m = new Message(new Jid("gameserv@" + Host), this.Me.User, MessageType.normal, data, "hostgame");
+            var m = new Message(new Jid("gameserv@" + Host), this.Me.JidUser, MessageType.normal, data, "hostgame");
             m.GenerateId();
             this.xmpp.Send(m);
         }
@@ -1278,7 +1278,7 @@ namespace Skylabs.Lobby
         public void SendFriendRequest(string username)
         {
             username = username.ToLower();
-            if (username == this.Me.User.User.ToLower())
+            if (username == this.Me.UserName.ToLowerInvariant())
             {
                 return;
             }
@@ -1298,8 +1298,8 @@ namespace Skylabs.Lobby
         /// </param>
         public void RemoveFriend(NewUser user)
         {
-            this.xmpp.PresenceManager.Unsubscribe(user.User);
-            this.RosterManager.RemoveRosterItem(user.User);
+            this.xmpp.PresenceManager.Unsubscribe(user.JidUser);
+            this.RosterManager.RemoveRosterItem(user.JidUser);
             this.Friends.Remove(user);
             this.OnDataReceived.Invoke(this, DataRecType.FriendList, this);
         }

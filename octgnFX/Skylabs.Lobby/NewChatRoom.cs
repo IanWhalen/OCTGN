@@ -56,15 +56,15 @@ namespace Skylabs.Lobby
             this.ModeratorList = new List<NewUser>();
             this.VoiceList = new List<NewUser>();
             this.client = c;
-            if (user.User.Server == "conference." + Client.Host)
+            if (user.Server == "conference." + Client.Host)
             {
                 this.IsGroupChat = true;
-                this.GroupUser = new NewUser(new Jid(user.User.Bare));
-                this.client.MucManager.JoinRoom(this.GroupUser.User, this.client.Me.User.User);
-                this.client.MucManager.RequestModeratorList(this.GroupUser.User);
-                this.client.MucManager.RequestAdminList(this.GroupUser.User);
-                this.client.MucManager.RequestOwnerList(this.GroupUser.User);
-                this.client.MucManager.RequestVoiceList(this.GroupUser.User);
+                this.GroupUser = new NewUser(new Jid(user.FullUserName));
+                this.client.MucManager.JoinRoom(this.GroupUser.JidUser, this.client.Me.UserName);
+                this.client.MucManager.RequestModeratorList(this.GroupUser.JidUser);
+                this.client.MucManager.RequestAdminList(this.GroupUser.JidUser);
+                this.client.MucManager.RequestOwnerList(this.GroupUser.JidUser);
+                this.client.MucManager.RequestVoiceList(this.GroupUser.JidUser);
             }
             else
             {
@@ -257,8 +257,8 @@ namespace Skylabs.Lobby
                     string rname = Randomness.RandomRoomName();
                     this.GroupUser = new NewUser(rname + "@conference." + Client.Host);
 
-                    this.client.MucManager.JoinRoom(this.GroupUser.User, this.client.Me.User.User);
-                    this.client.RosterManager.AddRosterItem(this.GroupUser.User, this.GroupUser.User.User);
+                    this.client.MucManager.JoinRoom(this.GroupUser.JidUser, this.client.Me.UserName);
+                    this.client.RosterManager.AddRosterItem(this.GroupUser.JidUser, this.GroupUser.UserName);
                 }
 
                 if (inviteUser)
@@ -267,7 +267,7 @@ namespace Skylabs.Lobby
                     {
                         if (u != this.client.Me)
                         {
-                            this.client.MucManager.Invite(u.User, this.GroupUser.User);
+                            this.client.MucManager.Invite(u.JidUser, this.GroupUser.JidUser);
                         }
                     }
                 }
@@ -357,10 +357,10 @@ namespace Skylabs.Lobby
         /// </summary>
         public void LeaveRoom()
         {
-            if (this.IsGroupChat && this.GroupUser.User != "lobby")
+            if (this.IsGroupChat && this.GroupUser.JidUser != "lobby")
             {
-                this.client.MucManager.LeaveRoom(this.GroupUser.User.Bare, this.client.Me.User.User);
-                this.client.RosterManager.RemoveRosterItem(this.GroupUser.User.Bare);
+                this.client.MucManager.LeaveRoom(this.GroupUser.UserName, this.client.Me.UserName);
+                this.client.RosterManager.RemoveRosterItem(this.GroupUser.FullUserName);
                 this.client.Chatting.RemoveRoom(this);
             }
         }
@@ -434,7 +434,7 @@ namespace Skylabs.Lobby
                 case MessageType.groupchat:
                     if (this.IsGroupChat && msg.Chatstate == Chatstate.None)
                     {
-                        if (msg.From.Bare == this.GroupUser.User.Bare)
+                        if (msg.From.Bare == this.GroupUser.FullUserName)
                         {
                             if (!string.IsNullOrWhiteSpace(msg.Subject))
                             {
@@ -478,7 +478,7 @@ namespace Skylabs.Lobby
         {
             var to = this.IsGroupChat
                              ? this.GroupUser
-                             : this.Users.SingleOrDefault(x => x.User.Bare != this.client.Me.User.Bare);
+                             : this.Users.SingleOrDefault(x => x.FullUserName != this.client.Me.FullUserName);
             if (to == null || string.IsNullOrWhiteSpace(message))
             {
                 return;
@@ -507,21 +507,21 @@ namespace Skylabs.Lobby
                         {
                             NewChatRoom r =
                                 this.client.Chatting.GetRoom(
-                                    new NewUser(new Jid(mess, Client.Host, this.client.Me.User.Resource)));
+                                    new NewUser(new Jid(mess, Client.Host, this.client.Me.JidUser.Resource)));
                             break;
                         }
                 }
             }
             else
             {
-                var j = new Jid(to.User);
+                var j = new Jid(to.JidUser);
                 var m = new Message(j, this.IsGroupChat ? MessageType.groupchat : MessageType.chat, message);
                 m.GenerateId();
                 m.XEvent = new Event { Delivered = true, Displayed = true };
                 this.client.Send(m);
                 if (!this.IsGroupChat)
                 {
-                    m.From = this.client.Me.User;
+                    m.From = this.client.Me.JidUser;
                     this.OnMessage(this, m);
                 }
             }
@@ -540,7 +540,7 @@ namespace Skylabs.Lobby
                 return;
             }
 
-            var m = new Message(this.GroupUser.User.Bare, MessageType.groupchat, string.Empty, topic);
+            var m = new Message(this.GroupUser.FullUserName, MessageType.groupchat, string.Empty, topic);
             m.GenerateId();
             m.XEvent = new Event { Delivered = true, Displayed = true };
             this.client.Send(m);

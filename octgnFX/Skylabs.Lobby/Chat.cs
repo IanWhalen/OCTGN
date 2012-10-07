@@ -281,7 +281,7 @@ namespace Skylabs.Lobby
                                 break;
                             }
 
-                            if (pres.MucUser.Item.Jid.Bare == this.client.Me.User.Bare)
+                            if (pres.MucUser.Item.Jid.Bare == this.client.Me.FullUserName)
                             {
                                 break;
                             }

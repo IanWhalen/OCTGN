@@ -82,7 +82,7 @@ namespace Skylabs.Lobby
         public NewUser UserHosting
         {
             get { return new NewUser(GetTagJid("userhosting")); }
-            set{SetTag("userhosting",value.User.Bare);}
+            set{SetTag("userhosting",value.FullUserName);}
         }
         public EHostedGame GameStatus
         {

@@ -111,21 +111,21 @@ namespace Octgn.Controls
             {
                 if (this.room.GroupUser != null)
                 {
-                    label.Inlines.Add(new Run(this.room.GroupUser.User.User));
+                    label.Inlines.Add(new Run(this.room.GroupUser.UserName));
 
                     // Lobby should never be able to be silenced.
-                    if (this.room.GroupUser.User.User.ToLowerInvariant() == "lobby")
+                    if (this.room.GroupUser.UserName.ToLowerInvariant() == "lobby")
                     {
                         borderClose.Visibility = Visibility.Collapsed;
                     }
                 }
                 else
                 {
-                    var otherUser = this.room.Users.FirstOrDefault(x => x.User.User.ToLowerInvariant() != Program.OctgnInstance.LobbyClient.Me.User.User.ToLowerInvariant());
+                    var otherUser = this.room.Users.FirstOrDefault(x => x.UserName.ToLowerInvariant() != Program.OctgnInstance.LobbyClient.Me.UserName.ToLowerInvariant());
                     if (
                         otherUser != null)
                     {
-                        label.Inlines.Add(new Run(otherUser.User.User));
+                        label.Inlines.Add(new Run(otherUser.UserName));
                     }
                 }
 
