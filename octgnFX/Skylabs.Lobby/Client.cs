@@ -183,6 +183,8 @@ namespace Skylabs.Lobby
     /// <summary>
     /// The client.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here."),
+    SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Reviewed. Suppression is OK here.")]
     public class Client
     {
         #region Delegates
@@ -664,7 +666,6 @@ namespace Skylabs.Lobby
         /// <param name="pres">
         /// The pres.
         /// </param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
         private void XmppOnPresence(object sender, Presence pres)
         {
             // Most of this if block handles the status if logged in somewhere else as well.
@@ -968,7 +969,7 @@ namespace Skylabs.Lobby
             var room = new Jid("lobby@conference." + Host);
             this.MucManager.AcceptDefaultConfiguration(room);
 
-            // MucManager.JoinRoom(room,Username,Password,false);
+            this.MucManager.JoinRoom(room, this.Username, this.Password, false);
             this.Me = new NewUser(this.xmpp.MyJID);
             this.Me.SetStatus(UserStatus.Online);
             this.xmpp.PresenceManager.Subscribe(this.xmpp.MyJID);
@@ -1025,6 +1026,17 @@ namespace Skylabs.Lobby
         /// </param>
         private void XmppOnOnRegistered(object sender)
         {
+            this.myPresence.Type = PresenceType.available;
+            this.myPresence.Show = ShowType.chat;
+            this.MucManager = new MucManager(this.xmpp);
+            var room = new Jid("lobby@conference." + Host);
+            this.MucManager.AcceptDefaultConfiguration(room);
+
+            // MucManager.JoinRoom(room,Username,Password,false);
+            this.Me = new NewUser(this.xmpp.MyJID);
+            this.Me.SetStatus(UserStatus.Online);
+            this.xmpp.PresenceManager.Subscribe(this.xmpp.MyJID);
+
             var v = new Vcard();
             var e = new Email { UserId = this.email, Type = EmailType.INTERNET, Value = this.email };
             v.AddChild(e);

@@ -117,9 +117,6 @@
     <Reference Include="agsXMPP">
       <HintPath>packages\agsXMPP.1.1.1.0\lib\agsXMPP.dll</HintPath>
     </Reference>
-    <Reference Include="CustomWindow">
-      <HintPath>..\..\packages\CustomWindow.dll</HintPath>
-    </Reference>
     <Reference Include="IronPython">
       <HintPath>packages\IronPython.2.7.3\lib\Net40\IronPython.dll</HintPath>
     </Reference>
@@ -133,7 +130,8 @@
       <HintPath>packages\IronPython.2.7.3\lib\Net40\IronPython.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="LinqToTwitter">
-      <HintPath>packages\LinqToTwitter.2.0.29\lib\net40\LinqToTwitter.dll</HintPath>
+      <HintPath>..\..\packages\linqtotwitter.2.1.01\lib\net40\LinqToTwitter.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Dynamic">
       <HintPath>packages\IronPython.2.7.3\lib\Net40\Microsoft.Dynamic.dll</HintPath>
@@ -237,6 +235,7 @@
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Extentions\BitmapImageExtensions.cs" />
     <Compile Include="Extentions\ControlExtensions.cs" />
+    <Compile Include="MethodsToReimplement.cs" />
     <Compile Include="Networking\IServerCalls.cs">
       <DependentUpon>IServerCalls.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -586,6 +585,7 @@
     <Resource Include="Resources\admin.png" />
     <Resource Include="Resources\moderator.png" />
     <Resource Include="Resources\owner.png" />
+    <Resource Include="Resources\testbackground.jpg" />
     <Content Include="Scripting\Lib\abc.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

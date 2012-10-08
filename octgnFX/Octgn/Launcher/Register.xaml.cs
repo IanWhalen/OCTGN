@@ -1,73 +1,104 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Skylabs.Lobby;
-using System.Text.RegularExpressions;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Register.xaml.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Interaction logic for Register.xaml
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Launcher
 {
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Text.RegularExpressions;
+    using System.Windows;
+    using System.Windows.Controls;
+
+    using Skylabs.Lobby;
+
     /// <summary>
     /// Interaction logic for Register.xaml
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
     public partial class Register : Page
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Register"/> class.
+        /// </summary>
         public Register()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
-        private void btnRegister_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Fires when the register button is clicked.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void BtnRegisterClick(object sender, RoutedEventArgs e)
         {
-            lblErrors.Content = "";
-            string pattern = @"^[a-zA-Z0-9.\-_]{2,30}$";
-            if (!Regex.Match(tbUsername.Text, pattern).Success)
+            this.lblErrors.Content = string.Empty;
+            const string Pattern = @"^[a-zA-Z0-9.\-_]{2,30}$";
+            if (!Regex.Match(tbUsername.Text, Pattern).Success)
             {
                 lblErrors.Content = "Usernames must only contain letters, numbers and . - _";
                 return;
             }
-            if (tbPass1.Password == "")
+
+            if (tbPass1.Password == string.Empty)
             {
                 lblErrors.Content = "Password cannot be empty.";
                 return;
             }
-            if (tbPass1.Password != tbPass2.Password || tbPass1.Password == "")
+
+            if (tbPass1.Password != tbPass2.Password || tbPass1.Password == string.Empty)
             {
                 lblErrors.Content = "Passwords do not match";
                 return;
             }
+
             progressBar1.Visibility = Visibility.Visible;
-            Program.OctgnInstance.LobbyClient.OnRegisterComplete += LobbyClientOnOnRegisterComplete;
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete += this.LobbyClientOnOnRegisterComplete;
             Program.OctgnInstance.LobbyClient.BeginRegister(tbUsername.Text, tbPass1.Password, tbEmail.Text);
         }
 
+        /// <summary>
+        /// Fires when the lobby registration is complete.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="results">
+        /// The results.
+        /// </param>
         private void LobbyClientOnOnRegisterComplete(object sender, RegisterResults results)
         {
-            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= this.LobbyClientOnOnRegisterComplete;
             Dispatcher.Invoke(new Action(()=>
                 {
                     progressBar1.Visibility = Visibility.Hidden;
-                    switch(results)
+                    switch (results)
                     {
                         case RegisterResults.ConnectionError:
                             lblErrors.Content = "There was a connection error. Please try again.";
                             break;
                         case RegisterResults.Success:
-                            MessageBox.Show("Registration Success!", "Octgn", MessageBoxButton.OK,
-                                            MessageBoxImage.Information);
+                            // TODO This message box needsta go
+                            MessageBox.Show(
+                                "Registration Success!", "Octgn", MessageBoxButton.OK, MessageBoxImage.Information);
                             var l = new Login();
                             l.textBox1.Text = Program.OctgnInstance.LobbyClient.Username;
                             l.passwordBox1.Password = Program.OctgnInstance.LobbyClient.Password;
-                            if (NavigationService != null) NavigationService.Navigate(l);
+                            if (NavigationService != null)
+                            {
+                                NavigationService.Navigate(l);
+                            }
+
                             break;
                         case RegisterResults.UsernameTaken:
                             lblErrors.Content = "That username is already taken.";
@@ -79,15 +110,25 @@ namespace Octgn.Launcher
                             lblErrors.Content = "That password is invalid.";
                             break;
                     }
-                }
-            ));
+                }));
         }
 
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Fires when the cancel button is clicked.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void BtnCancelClick(object sender, RoutedEventArgs e)
         {
-
-            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= LobbyClientOnOnRegisterComplete;
-            if (NavigationService != null) NavigationService.Navigate(new Login());
+            Program.OctgnInstance.LobbyClient.OnRegisterComplete -= this.LobbyClientOnOnRegisterComplete;
+            if (this.NavigationService != null)
+            {
+                NavigationService.Navigate(new Login());
+            }
         }
     }
 }

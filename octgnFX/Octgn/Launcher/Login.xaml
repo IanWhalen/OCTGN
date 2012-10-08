@@ -2,21 +2,17 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Login"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d" 
-      Height="300" Width="816"
-      Unloaded="PageUnloaded"
-      Loaded="PageLoaded" >
-    <Border Background="#33FFFFFF" BorderBrush="#77FFFFFF" CornerRadius="5">
+      Height="300" Width="Auto"
+      HorizontalAlignment="Center">
+    <Border Background="#33FFFFFF" BorderBrush="#ccFFFFFF" CornerRadius="5">
         <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="100*" />
-            </Grid.RowDefinitions>
             <Grid x:Name="MainGrid" Margin="10">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="365" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="365" />
               </Grid.ColumnDefinitions>
-              <Line Grid.Row="0" StrokeThickness="4" HorizontalAlignment="Center" X1="1" X2="1" Y1="1" Y2="300"  Width="4" Grid.Column="1" VerticalAlignment="Center">
+              <Line x:Name="lineSplit" Grid.Row="0" StrokeThickness="4" HorizontalAlignment="Center" X1="1" X2="1" Y1="1" Y2="300"  Width="4" Grid.Column="1" VerticalAlignment="Center">
                 <Line.Stroke>
                   <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
                     <RadialGradientBrush.GradientStops>
@@ -26,7 +22,7 @@
                   </RadialGradientBrush>
                 </Line.Stroke>
               </Line>
-                <StackPanel x:Name="spLogin" VerticalAlignment="Center" Height="234" Margin="0,46,0,0">
+                <StackPanel x:Name="spLogin" VerticalAlignment="Center" Height="234" Width="315" Margin="0,46,0,0">
                     <Label Content="Username(no e-mails)" Height="26" HorizontalAlignment="Left" Name="label1" VerticalAlignment="Top"
                        Width="223" Foreground="White" FontWeight="Bold" FontSize="14" Margin="10,0" />
                     <TextBox Height="23" HorizontalAlignment="Stretch" Name="textBox1" VerticalAlignment="Top"
@@ -44,7 +40,7 @@
                         </Grid.ColumnDefinitions>
                         <Button Content="Sign In" Height="37" Name="button1" Width="103" Click="Button1Click" 
                           HorizontalAlignment="Left" Grid.Column="0" />
-                        <Button Content="Register" Height="37" HorizontalAlignment="Right" Grid.Column="1" Name="btnRegister" VerticalAlignment="Top" Width="101" Click="btnRegister_Click" />
+                        <Button Content="Register" Height="37" HorizontalAlignment="Right" Grid.Column="1" Name="btnRegister" VerticalAlignment="Top" Width="101" Click="BtnRegisterClick" />
                     </Grid>
                         <Border  BorderBrush="Silver" BorderThickness="0,1,0,0" Grid.Column="0" Margin="10,5,10,0">
                             <TextBlock Style="{x:Null}" x:Name="lError" d:Text="TextBlock" TextWrapping="Wrap" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="Red" Grid.Row="0" FontSize="12"/>
@@ -62,8 +58,8 @@
                     
                 <Border.Background>
                   <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#3BC4C4C4" Offset="1" />
-                    <GradientStop Color="#4DFFFFFF" Offset="0" />
+                    <GradientStop Color="#EE444444" Offset="1" />
+                    <GradientStop Color="#EEaaaaaa" Offset="0" />
                   </LinearGradientBrush>
                 </Border.Background>
                 <Border.BorderBrush>

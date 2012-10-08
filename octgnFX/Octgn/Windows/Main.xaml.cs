@@ -156,6 +156,7 @@ namespace Octgn.Windows
                         {
                             TabCommunityChat.IsEnabled = false;
                             TabCustomGames.IsEnabled = false;
+
                             TabMain.Focus();
                         }));
         }

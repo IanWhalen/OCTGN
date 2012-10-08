@@ -1,40 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Navigation;
-using LinqToTwitter;
-using Octgn.DeckBuilder;
-using Octgn.Extentions;
-using Skylabs.Lobby;
-using Octgn.Definitions;
-using Skylabs.Lobby.Threading;
-using agsXMPP;
-using Client = Octgn.Networking.Client;
-using Octgn.Data;
-using HorizontalAlignment = System.Windows.HorizontalAlignment;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using MessageBox = System.Windows.MessageBox;
-using Uri = System.Uri;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Login.xaml.cs" company="OCTGN">
+//   GNU Stuff
+// </copyright>
+// <summary>
+//   Interaction logic for Login.xaml
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Octgn.Launcher
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Documents;
+    using System.Windows.Input;
+    using System.Windows.Media;
+    using System.Windows.Navigation;
+
+    using agsXMPP;
+
+    using LinqToTwitter;
+
+    using Octgn.Extentions;
+
+    using Skylabs.Lobby;
+    using Skylabs.Lobby.Threading;
+
+    using HorizontalAlignment = System.Windows.HorizontalAlignment;
+    using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+    using Uri = System.Uri;
+
     /// <summary>
     ///   Interaction logic for Login.xaml
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here."),
+    SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Reviewed. Suppression is OK here.")]
     public partial class Login
     {
-        private bool _isLoggingIn;
-        private bool _inLoginDone = false;
+        /// <summary>
+        /// Is logging in.
+        /// </summary>
+        private bool isLoggingIn;
+
+        /// <summary>
+        /// Is login done.
+        /// </summary>
+        private bool inLoginDone;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Login"/> class.
+        /// </summary>
         public Login()
         {
             InitializeComponent();
@@ -45,13 +65,187 @@ namespace Octgn.Launcher
                 passwordBox1.Password = password.Decrypt();
                 cbSavePassword.IsChecked = true;
             }
+
             textBox1.Text = Prefs.Username;
-            Program.OctgnInstance.LobbyClient.OnLoginComplete += LobbyClientOnLoginComplete;
-            Program.OctgnInstance.LobbyClient.OnStateChanged += LobbyClient_OnStateChanged;
-            LazyAsync.Invoke(GetTwitterStuff);
+            Program.OctgnInstance.LobbyClient.OnLoginComplete += this.LobbyClientOnLoginComplete;
+            Program.OctgnInstance.LobbyClient.OnStateChanged += this.LobbyClient_OnStateChanged;
+            LazyAsync.Invoke(this.GetTwitterStuff);
         }
 
-        void LobbyClient_OnStateChanged(object sender, agsXMPP.XmppConnectionState state)
+        #region News Feed
+        /// <summary>
+        /// Get twitter feed stuff.
+        /// </summary>
+        private void GetTwitterStuff()
+        {
+            try
+            {
+                var tc = new TwitterContext(new AnonymousAuthorizer());
+                var tweets =
+                    (from tweet in tc.Status
+                     where tweet.Type == StatusType.User
+                           && tweet.ScreenName == "octgn_official"
+                           && tweet.Count == 5
+                     select tweet).ToList();
+                Dispatcher.BeginInvoke(new Action(() => this.ShowTwitterStuff(tweets)));
+            }
+            catch (TwitterQueryException)
+            {
+                Dispatcher.Invoke(new Action(() => textBlock5.Text = "Could not retrieve news feed."));
+            }
+            catch (Exception)
+            {
+                Dispatcher.Invoke(new Action(() => textBlock5.Text = "Could not retrieve news feed."));
+            }
+        }
+
+        /// <summary>
+        /// Show twitter stuff. Must be on the UI Thread.
+        /// </summary>
+        /// <param name="tweets">
+        /// The tweets.
+        /// </param>
+        private void ShowTwitterStuff(List<Status> tweets)
+        {
+            textBlock5.HorizontalAlignment = HorizontalAlignment.Stretch;
+            textBlock5.Inlines.Clear();
+            textBlock5.Text = string.Empty;
+            foreach (var tweet in tweets)
+            {
+                Inline dtime =
+                    new Run(tweet.CreatedAt.ToShortDateString() + "  "
+                            + tweet.CreatedAt.ToShortTimeString());
+                dtime.Foreground =
+                    new SolidColorBrush(Colors.Khaki);
+                textBlock5.Inlines.Add(dtime);
+                textBlock5.Inlines.Add("\n");
+                var inlines = this.AddTweetText(tweet.Text).Inlines.ToArray();
+                foreach (var i in inlines)
+                {
+                    textBlock5.Inlines.Add(i);
+                }
+
+                textBlock5.Inlines.Add("\n\n");
+            }
+        }
+
+        /// <summary>
+        /// Converts a tweet's text into a paragraph.
+        /// </summary>
+        /// <param name="text">
+        /// The tweet text.
+        /// </param>
+        /// <returns>
+        /// The <see cref="Paragraph"/>.
+        /// </returns>
+        private Paragraph AddTweetText(string text)
+        {
+            var ret = new Paragraph();
+            var words = text.Split(' ');
+            var b = new SolidColorBrush(Colors.White);
+            foreach (var inn in words.Select(word => this.StringToRun(word, b)))
+            {
+                if (inn != null)
+                {
+                    ret.Inlines.Add(inn);
+                }
+
+                ret.Inlines.Add(" ");
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Converts a String to a Run
+        /// </summary>
+        /// <param name="s">
+        /// The string
+        /// </param>
+        /// <param name="b">
+        /// The default brush.
+        /// </param>
+        /// <returns>
+        /// The <see cref="Inline"/>.
+        /// </returns>
+        public Inline StringToRun(string s, Brush b)
+        {
+            Inline ret = null;
+            const string StrUrlRegex =
+                "(?i)\\b((?:[a-z][\\w-]+:(?:/{1,3}|[a-z0-9%])|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))";
+            var reg = new Regex(StrUrlRegex);
+            s = s.Trim();
+            var r = new Run(s);
+            if (reg.IsMatch(s))
+            {
+                b = Brushes.LightBlue;
+                var h = new Hyperlink(r);
+                h.Foreground = new SolidColorBrush(Colors.LawnGreen);
+                h.RequestNavigate += this.HOnRequestNavigate;
+                try
+                {
+                    h.NavigateUri = new Uri(s);
+                }
+                catch (UriFormatException)
+                {
+                    s = "http://" + s;
+                    try
+                    {
+                        h.NavigateUri = new Uri(s);
+                    }
+                    catch (Exception)
+                    {
+                        r.Foreground = b;
+                    }
+                }
+
+                ret = h;
+            }
+            else
+            {
+                ret = new Run(s) { Foreground = b };
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Fires when a hyperlink is clicked.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The arguments.
+        /// </param>
+        private void HOnRequestNavigate(object sender , RequestNavigateEventArgs e) 
+        {
+            var hl = (Hyperlink)sender;
+            var navigateUri = hl.NavigateUri.ToString();
+            try
+            {
+                Process.Start(new ProcessStartInfo(navigateUri));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+
+            e.Handled = true;
+        }
+        #endregion
+
+        #region LoginStuff
+
+        /// <summary>
+        /// lobby client on state changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="state">
+        /// The state.
+        /// </param>
+        private void LobbyClient_OnStateChanged(object sender, agsXMPP.XmppConnectionState state)
         {
             Dispatcher.BeginInvoke(new Action(() =>
                                                   {
@@ -59,394 +253,220 @@ namespace Octgn.Launcher
                                                       {
                                                           spLogin.Visibility = Visibility.Visible;
                                                           spLogin.IsEnabled = true;
+                                                          lineSplit.Visibility = Visibility.Visible;
                                                       }
                                                   }));
-            
         }
 
-        #region News Feed
-            private void GetTwitterStuff()
+        /// <summary>
+        /// Fires when the lobby login request is complete.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="results">
+        /// The results.
+        /// </param>
+        private void LobbyClientOnLoginComplete(object sender, LoginResults results)
+        {
+            var mess = string.Empty;
+            switch (results)
             {
+                case LoginResults.ConnectionError:
+                    mess = "Could not connect to the server.";
+                    break;
+                case LoginResults.Success:
+                    mess = string.Empty;
+                    break;
+                case LoginResults.Failure:
+                    mess = "Unknown failure.";
+                    break;
+                case LoginResults.FirewallError:
+                    mess = "This program is being blocked by a firewall on your pc.";
+                    break;
+                case LoginResults.AuthError:
+                    mess = "Your username or password was incorrect.";
+                    break;
+            }
 
-                try
-                {
-                    LinqToTwitter.TwitterContext tc = new TwitterContext();
+            this.isLoggingIn = false;
+            this.LoginFinished(results, mess);
+        }
 
-                    var tweets =
-                        (from tweet in tc.Status
-                         where tweet.Type == StatusType.User
-                               && tweet.ScreenName == "octgn_official"
-                               && tweet.Count == 5
-                         select tweet).ToList();
-                    Dispatcher.BeginInvoke(new Action(() => ShowTwitterStuff(tweets)));
-                }
-                catch (TwitterQueryException)
-                {
-                    Dispatcher.Invoke(new Action(()=>textBlock5.Text="Could not retrieve news feed."));
-                }         
-                catch(Exception)
-                {
-                    Dispatcher.Invoke(new Action(() => textBlock5.Text = "Could not retrieve news feed."));
-                }
-            }
-            private void ShowTwitterStuff(List<Status> tweets )
+        /// <summary>
+        /// Try to log in.
+        /// </summary>
+        private void DoLogin()
+        {
+            if (this.isLoggingIn)
             {
-                textBlock5.HorizontalAlignment = HorizontalAlignment.Stretch;
-                textBlock5.Inlines.Clear();
-                textBlock5.Text = "";
-                foreach( var tweet in tweets)
-                {
-                    Inline dtime =
-                        new Run(tweet.CreatedAt.ToShortDateString() + "  "
-                                + tweet.CreatedAt.ToShortTimeString());
-                    dtime.Foreground =
-                        new SolidColorBrush(Colors.Khaki);
-                    textBlock5.Inlines.Add(dtime);
-                    textBlock5.Inlines.Add("\n");
-                    var inlines = AddTweetText(tweet.Text).Inlines.ToArray();
-                    foreach(var i in inlines)
-                        textBlock5.Inlines.Add(i);     
-                    textBlock5.Inlines.Add("\n\n");
-                }
-                //Dispatcher.BeginInvoke(new Action(StartTwitterAnim) , DispatcherPriority.Background);
+                return;
             }
-            private Paragraph AddTweetText(string text)
+
+            spLogin.IsEnabled = false;
+            this.isLoggingIn = true;
+            lError.Visibility = Visibility.Hidden;
+            Program.OctgnInstance.LobbyClient.BeginLogin(textBox1.Text, passwordBox1.Password);
+        }
+
+        /// <summary>
+        /// The login finished.
+        /// </summary>
+        /// <param name="success">
+        /// The login results
+        /// </param>
+        /// <param name="message">
+        /// The message.
+        /// </param>
+        private void LoginFinished(LoginResults success, string message)
+        {
+            if (this.inLoginDone)
             {
-                var ret = new Paragraph();
-                var words = text.Split(' ');
-                var b = new SolidColorBrush(Colors.White);
-                foreach(var inn in words.Select(word=>StringToRun(word,b)))
-                {
-                    if(inn != null)
-                        ret.Inlines.Add(inn);
-                    ret.Inlines.Add(" ");
-                }
-                return ret;
+                return;
             }
-            public Inline StringToRun(String s, Brush b)
-            {
-                Inline ret = null;
-                const string strUrlRegex =
-                    "(?i)\\b((?:[a-z][\\w-]+:(?:/{1,3}|[a-z0-9%])|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))";
-                var reg = new Regex(strUrlRegex);
-                s = s.Trim();
-                //b = Brushes.Black;
-                Inline r = new Run(s);
-                if(reg.IsMatch(s))
-                {
-                    b = Brushes.LightBlue;
-                    var h = new Hyperlink(r);
-                    h.Foreground = new SolidColorBrush(Colors.LawnGreen);
-                    h.RequestNavigate += HOnRequestNavigate;
-                    try
+
+            this.inLoginDone = true;
+            Trace.TraceInformation("Login finished.");
+            Dispatcher.BeginInvoke(
+                (Action)(() =>
                     {
-                        h.NavigateUri = new Uri(s);
-                    }
-                    catch(UriFormatException)
-                    {
-                        s = "http://" + s;
-                        try
-                        {
-                            h.NavigateUri = new Uri(s);
-                        }
-                        catch(Exception)
-                        {
-                            r.Foreground = b;
-                            //var ul = new Underline(r);
-                        }
-                    }
-                    ret = h;
-                }
-                else
-                    ret = new Run(s){Foreground = b};
-                return ret;
-            }
-
-            private void HOnRequestNavigate(object sender , RequestNavigateEventArgs e) 
-            {
- 
-                var hl = (Hyperlink) sender;
-                string navigateUri = hl.NavigateUri.ToString();
-                try
-                {
-                    Process.Start(new ProcessStartInfo(navigateUri));
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                    if (Debugger.IsAttached) Debugger.Break();
-                }
-                e.Handled = true;
-            }
-        #endregion
-
-        #region LoginStuff
-            void LobbyClientOnLoginComplete(object sender, Skylabs.Lobby.LoginResults results)
-            {
-
-                var mess = "";
-                switch (results)
-                {
-                    case LoginResults.ConnectionError:
-                        mess = "Could not connect to the server.";
-                        break;
-                    case LoginResults.Success:
-                        mess = "";
-                        break;
-                    case LoginResults.Failure:
-                        mess = "Unknown failure.";
-                        break;
-                    case LoginResults.FirewallError:
-                        mess = "This program is being blocked by a firewall on your pc.";
-                        break;
-                    case LoginResults.AuthError:
-                        mess = "Your username or password was incorrect.";
-                        break;
-                }
-                _isLoggingIn = false;
-                LoginFinished(results, mess);
-            }
-
-            private void DoLogin()
-            {
-                if (_isLoggingIn) return;
-                spLogin.IsEnabled = false;
-                _isLoggingIn = true;
-                lError.Visibility = Visibility.Hidden;
-                Program.OctgnInstance.LobbyClient.BeginLogin(textBox1.Text,passwordBox1.Password);
-            }
-
-            private void LoginFinished(LoginResults success, string message)
-            {
-                if (_inLoginDone) return;
-                _inLoginDone = true;
-                Trace.TraceInformation("Login finished.");
-                Dispatcher.BeginInvoke((Action) (() =>
-                                                     {
-                                                    spLogin.IsEnabled = true;
-                                                    _isLoggingIn = false;
-                                                    switch (success)
-                                                    {
-                                                        case LoginResults.Success:
-                                                            Prefs.Password = cbSavePassword.IsChecked == true
-                                                                                 ? passwordBox1.Password.Encrypt()
-                                                                                 : "";
-                                                            Prefs.Username = textBox1.Text;
-                                                            Prefs.Nickname = textBox1.Text;
-                                                            spLogin.Visibility = Visibility.Hidden;
-                                                            break;
-                                                        default:
-                                                            DoErrorMessage(message);
-                                                            Program.OctgnInstance.LobbyClient.Stop();
-                                                            spLogin.Visibility = Visibility.Visible;
-                                                            break;
-                                                    }
-                                                    _inLoginDone = false;
-                                                }), new object[] {});
-            }
-
-            private void DoErrorMessage(string message)
-            {
-                Dispatcher.Invoke((Action) (() =>
+                        spLogin.IsEnabled = true;
+                                                this.isLoggingIn = false;
+                                                switch (success)
                                                 {
-                                                    lError.Text = message;
-                                                    lError.Visibility = Visibility.Visible;
-                                                }), new object[] {});
-            }
+                                                    case LoginResults.Success:
+                                                        Prefs.Password = cbSavePassword.IsChecked == true
+                                                                             ? passwordBox1.Password.Encrypt()
+                                                                             : string.Empty;
+                                                        Prefs.Username = textBox1.Text;
+                                                        Prefs.Nickname = textBox1.Text;
+                                                        spLogin.Visibility = Visibility.Collapsed;
+                                                        lineSplit.Visibility = Visibility.Collapsed;
+                                                        break;
+                                                    default:
+                                                        DoErrorMessage(message);
+                                                        Program.OctgnInstance.LobbyClient.Stop();
+                                                        spLogin.Visibility = Visibility.Visible;
+                                                        break;
+                                                }
+
+                        this.inLoginDone = false;
+                    }),
+                new object[] { });
+        }
+
+        /// <summary>
+        /// Display an error message.
+        /// </summary>
+        /// <param name="message">
+        /// The message.
+        /// </param>
+        private void DoErrorMessage(string message)
+        {
+            Dispatcher.Invoke(
+                (Action)(() =>
+                    {
+                        lError.Text = message;
+                        lError.Visibility = Visibility.Visible;
+                    }),
+                new object[] { });
+        }
+
         #endregion
 
         #region Offline Gaming
-            private void MenuOfflineClick(object sender, RoutedEventArgs e)
-            {
-                var g = new GameList();
-                var sg = new StartGame();
-                g.Row2.Height = new GridLength(25);
-                g.btnCancel.Click += delegate(object o, RoutedEventArgs args)
-                                         {
-                                             if (NavigationService != null) NavigationService.GoBack();
-                                         };
-                g.OnGameClick += GOnOnGameClick;
-                if (NavigationService != null) NavigationService.Navigate(g);
-            }
-
-            private void GOnOnGameClick(object sender, EventArgs eventArgs)
-            {
-                var hg = sender as Octgn.Data.Game;
-                if (hg == null || Program.PlayWindow != null)
-                {
-                    if (NavigationService != null) NavigationService.Navigate(new Login());
-                    return;
-                }
-                var hostport = 5000;
-                while (!Skylabs.Lobby.Networking.IsPortAvailable(hostport))
-                    hostport++;
-                var hs = new HostedGame(hostport, hg.Id, hg.Version, "LocalGame", "", null,true);
-                hs.HostedGameDone += hs_HostedGameDone;
-                if (!hs.StartProcess())
-                {
-                    hs.HostedGameDone -= hs_HostedGameDone;
-                    if (NavigationService != null) NavigationService.Navigate(new Login());
-                    return;
-                }
-
-                Program.IsHost = true;
-                Data.Game theGame =
-                    Program.GamesRepository.Games.FirstOrDefault(g => g.Id == hg.Id);
-                if (theGame == null) return;
-                Program.Game = new Game(GameDef.FromO8G(theGame.FullPath),true);
-
-                var ad = new IPAddress[1];
-                IPAddress ip = IPAddress.Parse("127.0.0.1");
-
-                if (ad.Length <= 0) return;
-                try
-                {
-                    Program.Client = new Client(ip, hostport);
-                    Program.Client.Connect();
-                    Dispatcher.Invoke(new Action(() =>
-                                                     {
-                                                         if(NavigationService != null)
-                                                            NavigationService.Navigate(new StartGame(true) {Width = 400});
-                                                     }));
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                    if (Debugger.IsAttached) Debugger.Break();
-                }
-            }
-            
-            void hs_HostedGameDone(object sender, EventArgs e)
-            {
-                //throw new NotImplementedException();
-            }
-            private void GOoffConnOnGameClick(object sender, EventArgs eventArgs)
-            {
-                var hg = sender as Octgn.Data.Game;
-                if (hg == null || Program.PlayWindow != null)
-                {
-                    if (NavigationService != null) NavigationService.Navigate(new Login());
-                    return;
-                }
-                Program.IsHost = false;
-                Data.Game theGame =
-                    Program.GamesRepository.Games.FirstOrDefault(g => g.Id == hg.Id);
-                if (theGame == null)
-                {
-                    if (NavigationService != null) NavigationService.Navigate(new Login());
-                    return;
-                }
-                Program.Game = new Game(GameDef.FromO8G(theGame.FullPath),true);
-                if (NavigationService != null) NavigationService.Navigate(new ConnectLocalGame());
-            }
-
-            private void MenuOfflineConnectClick(object sender, RoutedEventArgs e)
-            {
-                var g = new GameList();
-                g.Row2.Height = new GridLength(25);
-                g.btnCancel.Click += delegate(object o, RoutedEventArgs args)
-                { if (NavigationService != null) NavigationService.GoBack(); };
-                g.OnGameClick += GOoffConnOnGameClick;
-                if (NavigationService != null) NavigationService.Navigate(g);
-            }
         #endregion
 
         #region UI Events
-            private void Button1Click(object sender, RoutedEventArgs e) { DoLogin(); }
-            private void MenuDeckEditorClick(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Login button clicked.
+        /// </summary>
+        /// <param name="sender">The Sender</param>
+        /// <param name="e">The Arguments</param>
+        private void Button1Click(object sender, RoutedEventArgs e)
+        {
+            DoLogin();
+        }
+
+        /// <summary>
+        /// Username textbox text changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void TextBox1TextChanged(object sender, TextChangedEventArgs e)
+        {
+            lError.Visibility = Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// The password box password changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void PasswordBox1PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            lError.Visibility = Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// The register button clicked.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void BtnRegisterClick(object sender, RoutedEventArgs e)
+        {
+            if (NavigationService != null)
             {
-                if (Program.GamesRepository.Games.Count == 0)
-                {
-                    MessageBox.Show("You have no game installed.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                if (Program.DeckEditor == null)
-                {
-                    Program.DeckEditor = new DeckBuilderWindow();
-                    Program.DeckEditor.Show();
-                }
-                else if (Program.DeckEditor.IsVisible == false)
-                {
-                    Program.DeckEditor = new DeckBuilderWindow();
-                    Program.DeckEditor.Show();
-                }
+                NavigationService.Navigate(new Register());
             }
-            private void menuAboutUs_Click(object sender, RoutedEventArgs e)
+        }
+
+        /// <summary>
+        /// Username box key up.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void TextBox1KeyUp(object sender, KeyEventArgs e)
+        {
+            cbSavePassword.IsChecked = false;
+        }
+
+        /// <summary>
+        /// Password box key up.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private void PasswordBox1KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
             {
-                if (NavigationService != null) NavigationService.Navigate(new Windows.AboutWindow());
+                this.DoLogin();
             }
-            private void menuHelp_Click(object sender, RoutedEventArgs e)
-            {
-                Process.Start("https://github.com/kellyelton/OCTGN/wiki");
-            }
-            private void menuBug_Click(object sender, RoutedEventArgs e)
-            {
-                Process.Start("https://github.com/kellyelton/OCTGN/issues");
-            }
-            private void TextBox1TextChanged(object sender, TextChangedEventArgs e){lError.Visibility = Visibility.Hidden;}
-            private void PasswordBox1PasswordChanged(object sender, RoutedEventArgs e){lError.Visibility = Visibility.Hidden;}
-            private void btnRegister_Click(object sender, RoutedEventArgs e) { if (NavigationService != null) NavigationService.Navigate(new Register()); }
-            private void TextBox1KeyUp(object sender, KeyEventArgs e)
+            else if (cbSavePassword.IsChecked == true)
             {
                 cbSavePassword.IsChecked = false;
             }
-            private void PasswordBox1KeyUp(object sender, KeyEventArgs e)
-            {
-                if (e.Key == Key.Enter)
-                {
-                    DoLogin();
-                }
-                else if (cbSavePassword.IsChecked == true)
-                {
-                    cbSavePassword.IsChecked = false;
-                }
-            }
+        }
         #endregion
-
-        #region Window stuff
-            private void PageUnloaded(object sender, RoutedEventArgs e)
-            {
-                //Program.OctgnInstance.LobbyClient.OnLoginComplete -= LobbyClientOnLoginComplete;
-            }
-
-            private void PageLoaded(object sender, RoutedEventArgs e)
-            {
-                //TODO Check for server here
-            }
-            private void LauncherWindowClosing(object sender, CancelEventArgs e){if (_isLoggingIn)e.Cancel = true;}
-            private void MenuExitClick(object sender, RoutedEventArgs e){if (!_isLoggingIn)Program.Exit();}
-        #endregion            
-
-            private void menuCD_Click(object sender, RoutedEventArgs e)
-            {
-                var pf = new FolderBrowserDialog();
-                pf.SelectedPath = GamesRepository.BasePath;
-                var dr = pf.ShowDialog();
-                if(dr == DialogResult.OK)
-                {
-                    if(pf.SelectedPath.ToLower() != GamesRepository.BasePath.ToLower())
-                    {
-                        Prefs.DataDirectory = pf.SelectedPath;
-                        var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                        var thispath = asm.Location;
-                        Program.Exit();
-                        Process.Start(thispath);
-                        /*Application.Current.Exit += delegate(object o , ExitEventArgs args)
-                                                    {
-                                                        Process.Start(thispath);
-
-                                                    };*/
-                    }
-                }
-            }
-
-            private void menuInstallOnBoot_Checked(object sender, RoutedEventArgs e) {  }
-
-            private void menuInstallOnBoot_Unchecked(object sender, RoutedEventArgs e)
-            {
-               
-            }
-
     }
-
 }
