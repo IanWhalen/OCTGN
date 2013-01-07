@@ -33,7 +33,7 @@ namespace Octgn
         public static Skylabs.Lobby.Client LobbyClient { get { return OctgnInstance.LobbyClient; } }
 
         public static Game Game;
-        public static OctgnInstance OctgnInstance = new OctgnInstance();
+        public static OctgnInstance OctgnInstance = new OctgnInstance("of.octgn.net");
         public static GameSettings GameSettings = new GameSettings();
         public static GamesRepository GamesRepository;
         internal static Client Client;

@@ -56,7 +56,7 @@ namespace Skylabs.Lobby
             this.ModeratorList = new List<NewUser>();
             this.VoiceList = new List<NewUser>();
             this.client = c;
-            if (user.Server == "conference." + Client.Host)
+            if (user.Server == "conference." + this.client.Host)
             {
                 this.IsGroupChat = true;
                 this.GroupUser = new NewUser(new Jid(user.FullUserName));
@@ -255,7 +255,7 @@ namespace Skylabs.Lobby
                 {
                     this.IsGroupChat = true;
                     string rname = Randomness.RandomRoomName();
-                    this.GroupUser = new NewUser(rname + "@conference." + Client.Host);
+                    this.GroupUser = new NewUser(rname + "@conference." + this.client.Host);
 
                     this.client.MucManager.JoinRoom(this.GroupUser.JidUser, this.client.Me.UserName);
                     this.client.RosterManager.AddRosterItem(this.GroupUser.JidUser, this.GroupUser.UserName);
@@ -441,8 +441,8 @@ namespace Skylabs.Lobby
                                 if (this.OnMessageReceived != null)
                                 {
                                     this.OnMessageReceived.Invoke(
-                                        this, 
-                                        new NewUser(new Jid(msg.From.Resource + "@" + Client.Host)), 
+                                        this,
+                                        new NewUser(new Jid(msg.From.Resource + "@" + this.client.Host)), 
                                         msg.Subject, 
                                         remoteTime, 
                                         LobbyMessageType.Topic);
@@ -453,8 +453,8 @@ namespace Skylabs.Lobby
                                 if (this.OnMessageReceived != null)
                                 {
                                     this.OnMessageReceived.Invoke(
-                                        this, 
-                                        new NewUser(new Jid(msg.From.Resource + "@" + Client.Host)), 
+                                        this,
+                                        new NewUser(new Jid(msg.From.Resource + "@" + this.client.Host)), 
                                         msg.Body, 
                                         remoteTime);
                                 }
@@ -478,7 +478,7 @@ namespace Skylabs.Lobby
         {
             var to = this.IsGroupChat
                              ? this.GroupUser
-                             : this.Users.SingleOrDefault(x => x.FullUserName != this.client.Me.FullUserName);
+                             : this.Users.FirstOrDefault(x => x.FullUserName != this.client.Me.FullUserName);
             if (to == null || string.IsNullOrWhiteSpace(message))
             {
                 return;
@@ -507,7 +507,7 @@ namespace Skylabs.Lobby
                         {
                             NewChatRoom r =
                                 this.client.Chatting.GetRoom(
-                                    new NewUser(new Jid(mess, Client.Host, this.client.Me.JidUser.Resource)));
+                                    new NewUser(new Jid(mess, this.client.Host, this.client.Me.JidUser.Resource)));
                             break;
                         }
                 }

@@ -145,4 +145,39 @@
         Topic
     }
 
+    /// <summary>
+    /// The users status.
+    /// </summary>
+    public enum UserStatus
+    {
+        /// <summary>
+        /// The unknown.
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// The offline.
+        /// </summary>
+        Offline = 1,
+
+        /// <summary>
+        /// The online.
+        /// </summary>
+        Online = 2,
+
+        /// <summary>
+        /// The away.
+        /// </summary>
+        Away = 3,
+
+        /// <summary>
+        /// The do not disturb.
+        /// </summary>
+        DoNotDisturb = 4,
+
+        /// <summary>
+        /// The invisible.
+        /// </summary>
+        Invisible = 5
+    }
 }

@@ -13,6 +13,7 @@ namespace Skylabs.Lobby
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Linq;
     using System.Net.Sockets;
 
@@ -31,101 +32,97 @@ namespace Skylabs.Lobby
 
     using Error = agsXMPP.protocol.Error;
 
+
+    #region Delegates
+
     /// <summary>
-    /// The client.
+    /// The delegate register complete.
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here."),
-    SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Reviewed. Suppression is OK here.")]
+    /// <param name="sender">
+    /// The sender.
+    /// </param>
+    /// <param name="results">
+    /// The results.
+    /// </param>
+    public delegate void ClientRegisterComplete(object sender, RegisterResults results);
+
+    /// <summary>
+    /// The delegate state changed.
+    /// </summary>
+    /// <param name="sender">
+    /// The sender.
+    /// </param>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    public delegate void ClientStateChanged(object sender, XmppConnectionState state);
+
+    /// <summary>
+    /// The delegate friend request.
+    /// </summary>
+    /// <param name="sender">
+    /// The sender.
+    /// </param>
+    /// <param name="user">
+    /// The user.
+    /// </param>
+    public delegate void ClientFriendRequest(object sender, Jid user);
+
+    /// <summary>
+    /// The delegate login complete.
+    /// </summary>
+    /// <param name="sender">
+    /// The sender.
+    /// </param>
+    /// <param name="results">
+    /// The results.
+    /// </param>
+    public delegate void ClientLoginComplete(object sender, LoginResults results);
+
+    /// <summary>
+    /// The delegate data received.
+    /// </summary>
+    /// <param name="sender">
+    /// The sender.
+    /// </param>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <param name="data">
+    /// The data.
+    /// </param>
+    public delegate void ClientDataRecieved(object sender, DataRecType type, object data);
+
+    #endregion
+
     public class Client
     {
-        #region Delegates
-
-        /// <summary>
-        /// The delegate register complete.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="results">
-        /// The results.
-        /// </param>
-        public delegate void DRegisterComplete(object sender, RegisterResults results);
-
-        /// <summary>
-        /// The delegate state changed.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="state">
-        /// The state.
-        /// </param>
-        public delegate void DStateChanged(object sender, XmppConnectionState state);
-
-        /// <summary>
-        /// The delegate friend request.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="user">
-        /// The user.
-        /// </param>
-        public delegate void DFriendRequest(object sender, Jid user);
-
-        /// <summary>
-        /// The delegate login complete.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="results">
-        /// The results.
-        /// </param>
-        public delegate void DLoginComplete(object sender, LoginResults results);
-
-        /// <summary>
-        /// The delegate data received.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="type">
-        /// The type.
-        /// </param>
-        /// <param name="data">
-        /// The data.
-        /// </param>
-        public delegate void DDataRecieved(object sender, DataRecType type, object data);
-
-        #endregion
-
         #region Events
 
         /// <summary>
         /// The on register complete.
         /// </summary>
-        public event DRegisterComplete OnRegisterComplete;
+        public event ClientRegisterComplete OnRegisterComplete;
 
         /// <summary>
         /// The on login complete.
         /// </summary>
-        public event DLoginComplete OnLoginComplete;
+        public event ClientLoginComplete OnLoginComplete;
 
         /// <summary>
         /// The on state changed.
         /// </summary>
-        public event DStateChanged OnStateChanged;
+        public event ClientStateChanged OnStateChanged;
 
         /// <summary>
         /// The on friend request.
         /// </summary>
-        public event DFriendRequest OnFriendRequest;
+        public event ClientFriendRequest OnFriendRequest;
 
         /// <summary>
         /// The on data received.
         /// </summary>
-        public event DDataRecieved OnDataReceived;
+        public event ClientDataRecieved OnDataReceived;
 
         /// <summary>
         /// The on disconnect.
@@ -133,11 +130,10 @@ namespace Skylabs.Lobby
         public event EventHandler OnDisconnect;
 
         #endregion
-
         #region PrivateAccessors
 
         /// <summary>
-        /// The Xmpp.
+        /// The this.xmpp.
         /// </summary>
         private XmppClientConnection xmpp;
 
@@ -243,7 +239,7 @@ namespace Skylabs.Lobby
         /// <summary>
         /// The host.
         /// </summary>
-        public const string Host = "server.octgn.info";
+        public string Host;
 
         /// <summary>
         /// Gets or sets the status.
@@ -270,14 +266,13 @@ namespace Skylabs.Lobby
         /// <summary>
         /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
-        public Client()
+        /// <param name="host">Chat host to connect to</param>
+        public Client(string host)
         {
+            Host = host;
             this.RebuildXmpp();
         }
 
-        /// <summary>
-        /// The rebuild XMPP.
-        /// </summary>
         private void RebuildXmpp()
         {
             if (this.xmpp != null)
@@ -463,18 +458,20 @@ namespace Skylabs.Lobby
         /// </param>
         private void XmppOnOnIq(object sender, IQ iq)
         {
+            if (iq.Error != null && iq.Error.Code == ErrorCode.NotAllowed)
+                if (OnLoginComplete != null) OnLoginComplete.Invoke(this, LoginResults.Failure);
             if (iq.Type == IqType.result)
             {
                 if (iq.Vcard != null)
                 {
-                    NewUser f = this.Friends.AsParallel().SingleOrDefault(x => x.FullUserName == iq.From.Bare);
+                    var f = this.Friends.AsParallel().FirstOrDefault(x => x.FullUserName == iq.From.Bare);
                     if (f != null)
                     {
-                        string email = DatabaseHandler.GetUser(f.FullUserName);
+                        var email = DatabaseHandler.GetUser(f.FullUserName);
                         if (string.IsNullOrWhiteSpace(email))
                         {
-                            Email s =
-                                iq.Vcard.GetEmailAddresses().SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.UserId));
+                            var s =
+                                iq.Vcard.GetEmailAddresses().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.UserId));
                             if (s != null)
                             {
                                 f.Email = s.UserId;
@@ -575,14 +572,11 @@ namespace Skylabs.Lobby
                     break;
             }
 
-            foreach (NewUser t in this.Friends)
+            foreach (var t in this.Friends.Where(t => t.UserName == pres.From.User))
             {
-                if (t.UserName == pres.From.User)
-                {
-                    t.CustomStatus = pres.Status ?? string.Empty;
-                    t.SetStatus(pres);
-                    break;
-                }
+                t.CustomStatus = pres.Status ?? string.Empty;
+                t.SetStatus(pres);
+                break;
             }
 
             this.XmppOnOnRosterEnd(this);
@@ -688,9 +682,9 @@ namespace Skylabs.Lobby
         /// </param>
         private void XmppOnOnRosterEnd(object sender)
         {
-            foreach (NewUser n in this.Friends)
+            foreach (var n in this.Friends)
             {
-                string email = DatabaseHandler.GetUser(n.FullUserName);
+                var email = DatabaseHandler.GetUser(n.FullUserName);
                 if (string.IsNullOrWhiteSpace(email))
                 {
                     /*
@@ -720,6 +714,7 @@ namespace Skylabs.Lobby
                 == 0)
             {
                 this.xmpp.RosterManager.AddRosterItem(new Jid("lobby@conference." + Host));
+                this.xmpp.RequestRoster();
             }
         }
 
@@ -819,7 +814,6 @@ namespace Skylabs.Lobby
             this.MucManager = new MucManager(this.xmpp);
             var room = new Jid("lobby@conference." + Host);
             this.MucManager.AcceptDefaultConfiguration(room);
-
             this.MucManager.JoinRoom(room, this.Username, this.Password, false);
             this.Me = new NewUser(this.xmpp.MyJID);
             this.Me.SetStatus(UserStatus.Online);
@@ -864,8 +858,8 @@ namespace Skylabs.Lobby
         /// </param>
         private void XmppOnOnRegisterError(object sender, Element element)
         {
-            this.OnRegisterComplete.Invoke(this, RegisterResults.UsernameTaken);
-            Trace.WriteLine("[Xmpp]Register Error...Closing...");
+            OnRegisterComplete.Invoke(this, RegisterResults.UsernameTaken);
+            Trace.WriteLine("[this.xmpp]Register Error...Closing...");
             this.xmpp.Close();
         }
 
@@ -1171,7 +1165,7 @@ namespace Skylabs.Lobby
         /// The get hosted games.
         /// </summary>
         /// <returns>
-        /// The <see cref="HostedGameData[]"/>.
+        /// The <see cref="HostedGameData"/>.
         /// </returns>
         public HostedGameData[] GetHostedGames()
         {
@@ -1184,7 +1178,7 @@ namespace Skylabs.Lobby
         public void HostedGameStarted()
         {
             var m = new Message(
-                "gameserv@" + Host, MessageType.normal, this.CurrentHostedGamePort.ToString(), "gamestarted");
+                "gameserv@" + Host, MessageType.normal, this.CurrentHostedGamePort.ToString(CultureInfo.InvariantCulture), "gamestarted");
             this.xmpp.Send(m);
         }
 

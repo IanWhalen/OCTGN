@@ -121,7 +121,7 @@ namespace Skylabs.Lobby
         {
             if (group)
             {
-                NewChatRoom ret = this.Rooms.SingleOrDefault(x => x.IsGroupChat && x.GroupUser.Equals(otherUser));
+                NewChatRoom ret = this.Rooms.FirstOrDefault(x => x.IsGroupChat && x.GroupUser.Equals(otherUser));
                 if (ret == null)
                 {
                     ret = new NewChatRoom(this.NextRid, this.client, otherUser);
@@ -133,7 +133,7 @@ namespace Skylabs.Lobby
             }
             else
             {
-                NewChatRoom ret = this.Rooms.SingleOrDefault(x => x.Users.Contains(otherUser) && !x.IsGroupChat);
+                NewChatRoom ret = this.Rooms.FirstOrDefault(x => x.Users.Contains(otherUser) && !x.IsGroupChat);
                 if (ret == null)
                 {
                     ret = new NewChatRoom(this.NextRid, this.client, otherUser);
@@ -175,7 +175,7 @@ namespace Skylabs.Lobby
             switch (msg.Type)
             {
                 case MessageType.normal:
-                    if (msg.From.Server == "conference." + Client.Host)
+                    if (msg.From.Server == "conference." + this.client.Host)
                     {
                         string rname = msg.From.User;
                         var m = new MucManager(this.xmpp);
@@ -235,7 +235,7 @@ namespace Skylabs.Lobby
             switch (pres.Type)
             {
                 case PresenceType.available:
-                    if (pres.From.Server == "conference." + Client.Host)
+                    if (pres.From.Server == "conference." + this.client.Host)
                     {
                         var addUser = new NewUser(pres.MucUser.Item.Jid);
                         var rm = this.GetRoom(new NewUser(pres.From), true);
@@ -274,7 +274,7 @@ namespace Skylabs.Lobby
                     break;
                 case PresenceType.unavailable:
                     {
-                        if (pres.From.Server == "conference." + Client.Host)
+                        if (pres.From.Server == "conference." + this.client.Host)
                         {
                             if (pres.MucUser.Item.Jid == null)
                             {

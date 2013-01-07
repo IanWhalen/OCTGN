@@ -545,7 +545,7 @@ namespace Octgn.Windows
             Program.IsHost = false;
             Program.Game = new Game(GameDef.FromO8G(theGame.FullPath));
 
-			var ad = Dns.GetHostAddresses(Skylabs.Lobby.Client.Host);
+			var ad = Dns.GetHostAddresses("of.octgn.net");
             IPAddress ip = ad[0];
 
             if (ad.Length <= 0) return;

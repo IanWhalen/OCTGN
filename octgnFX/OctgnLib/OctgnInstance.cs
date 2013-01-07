@@ -19,9 +19,10 @@ namespace Octgn
         /// <summary>
         /// Initializes a new instance of the <see cref="OctgnInstance"/> class.
         /// </summary>
-        public OctgnInstance()
+        /// <param name="lobbyHost">Server host for Lobby</param>
+        public OctgnInstance(string lobbyHost)
         {
-            this.LobbyClient = new Client();
+            this.LobbyClient = new Client(lobbyHost);
         }
 
         /// <summary>
