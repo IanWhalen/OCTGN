@@ -1,156 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using Skylabs.Lobby;
-using Skylabs.Lobby.Threading;
-using Skylabs.Net;
 
 namespace Skylabs.LobbyServer
 {
+    using Skylabs.Lobby.Library;
+    using Skylabs.Lobby.Library.Models;
+
     public static class Gaming
     {
-        //private static readonly object GamingLocker = new object();
-        private static int _currentHostPort = 10000;
-        private static long _totalHostedGames;
+        private static int currentHostPort = 10000;
+        private static long totalHostedGames;
         private static readonly ReaderWriterLockSlim Locker; 
 
         static Gaming()
         {
             Locker = new ReaderWriterLockSlim();
-            Games = new Dictionary<int, HostedGame>();
+            Games = new Dictionary<Guid, HostedGameProcess>();
         }
 
-        private static Dictionary<int, HostedGame> Games { get; set; }
+        private static Dictionary<Guid, HostedGameProcess> Games { get; set; }
 
         public static int GameCount()
         {
-            Logger.PreLock();
             Locker.EnterReadLock();
-            Logger.InLock();
                 int ret = Games.Count;
             Locker.ExitReadLock();
-            Logger.EndLock();
-            return ret;
-        }
-
-        public static HostedGame GetGame(int port)
-        {
-            HostedGame ret;
-            Logger.PreLock();
-            Locker.EnterReadLock();
-            Logger.InLock();
-                Games.TryGetValue(port, out ret);
-            Locker.ExitReadLock();
-            Logger.EndLock();
             return ret;
         }
 
         public static void Stop()
         {
-            Logger.PreLock();
             Locker.EnterWriteLock();
-            Logger.InLock();
                 foreach (var g in Games)
                 {
                     g.Value.Stop();
                 }
                 Games.Clear();
             Locker.ExitWriteLock();
-            Logger.EndLock();
         }
 
         public static long TotalHostedGames()
         {
-            Logger.PreLock();
             Locker.EnterReadLock();
-            Logger.InLock();
-                long ret = _totalHostedGames;
+                long ret = totalHostedGames;
             Locker.ExitReadLock();
-            Logger.EndLock();
             return ret;
             
         }
 
-        public static int HostGame(Guid g, Version v, string name, string pass, NewUser u)
+        public static int HostGame(Uri host, Guid g, Version v, string gameName,string name, string pass, IUser u)
         {
-            Logger.PreLock();
             Locker.EnterWriteLock();//Enter Lock
-            Logger.InLock();
-            while (Games.ContainsKey(_currentHostPort) || !Networking.IsPortAvailable(_currentHostPort))
+            while (Games.Any(x=>x.Value.Host.Port == currentHostPort) || !Networking.IsPortAvailable(currentHostPort))
             {
-                _currentHostPort++;
-                if (_currentHostPort >= 20000)
-                    _currentHostPort = 10000;
+                currentHostPort++;
+                if (currentHostPort >= 20000)
+                    currentHostPort = 10000;
             }
-            var hs = new HostedGame(_currentHostPort, g, v, name, pass, u);
-            hs.HostedGameDone += HostedGameExited;
-            if (hs.StartProcess())
+            var uriBuilder = new UriBuilder(host) { Port = currentHostPort };
+
+            var hs = new HostedGameProcess(uriBuilder.Uri, g, v, gameName,name, pass, u);
+            if (hs.Start())
             {
-                Games.Add(_currentHostPort, hs);
-                _totalHostedGames++;
+                Games.Add(hs.Id, hs);
+                totalHostedGames++;
                 Locker.ExitWriteLock();//Exit Lock
-                Logger.EndLock();
-                return _currentHostPort;
+                return currentHostPort;
             }
-            hs.HostedGameDone -= HostedGameExited;
             Locker.ExitWriteLock();//Exit Lock
-            Logger.EndLock();
             return -1;
 
         }
 
-        public static void StartGame(int port)
+        public static void StartGame(Guid gameId)
         {
-            Logger.PreLock();
             Locker.EnterWriteLock();
-            Logger.InLock();
                 try
                 {
-                    Games[port].Status = Lobby.EHostedGame.GameInProgress;
+                    Games[gameId].SetStatus(GameStatus.InProgress);
                 }
                 catch (Exception e)
                 {
                     Logger.Er(e);
                 }
             Locker.ExitWriteLock();
-            Logger.EndLock();
         }
 
-        public static List<Lobby.HostedGameData> GetLobbyList()
+        public static List<Lobby.Library.Models.HostedGame> GetLobbyList()
         {
-            Logger.PreLock();
             Locker.EnterReadLock();
-            Logger.InLock();
-            List<Lobby.HostedGameData> sendgames =
+            List<Lobby.Library.Models.HostedGame> sendgames =
                 Games.Select(
                     g =>
-                    new Lobby.HostedGameData(g.Value.GameGuid, (Version) g.Value.GameVersion.Clone(), g.Value.Port,
-                                            (string) g.Value.Name.Clone(), (NewUser) g.Value.Hoster, g.Value.TimeStarted)
-                        {GameStatus = g.Value.Status}).ToList();
+                    new Lobby.Library.Models.HostedGame(g.Value, false)).ToList();
             Locker.ExitReadLock();
-            Logger.EndLock();
             return sendgames;
         }
 
         private static void HostedGameExited(object sender, EventArgs e)
         {
-            Logger.PreLock();
             Locker.EnterWriteLock();
-            Logger.InLock();
-                var s = sender as HostedGame;
+                var s = sender as HostedGameProcess;
                 if (s == null)
                 {
                     Locker.ExitWriteLock();
-                    Logger.EndLock();
                     return;
                 }
-                s.Status = Lobby.EHostedGame.StoppedHosting;
-                Games.Remove(s.Port);
+                s.SetStatus(GameStatus.Stopped);
+                Games.Remove(s.Id);
             Locker.ExitWriteLock();
-            Logger.EndLock();
             GameBot.RefreshLists();
         }
     }

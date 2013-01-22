@@ -99,7 +99,6 @@
   <ItemGroup>
     <Compile Include="Chat.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="Enums.cs" />
     <Compile Include="FriendRequestNotification.cs" />
     <Compile Include="HostedGame.cs" />
     <Compile Include="HostedGameData.cs" />
@@ -154,6 +153,10 @@
     <ProjectReference Include="..\Octgn.Data\Octgn.Data.csproj">
       <Project>{6C6E53BA-E75B-4E93-98CA-3C39ED908B2C}</Project>
       <Name>Octgn.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Skylabs.Lobby.Library\Skylabs.Lobby.Library.csproj">
+      <Project>{e4d4f5cf-0da8-43a7-9d1d-6a5aaa1cf192}</Project>
+      <Name>Skylabs.Lobby.Library</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

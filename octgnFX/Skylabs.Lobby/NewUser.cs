@@ -14,6 +14,8 @@ namespace Skylabs.Lobby
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
     using agsXMPP.protocol.client;
 

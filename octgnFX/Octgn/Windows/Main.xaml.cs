@@ -34,6 +34,8 @@ using Octgn.Data;
 
 namespace Octgn.Windows
 {
+    using Skylabs.Lobby.Library;
+
     /// <summary>
     ///   Interaction logic for Main.xaml
     /// </summary>
@@ -165,23 +167,23 @@ namespace Octgn.Windows
             }
         }
 
-        private void LobbyClientOnOnDataRecieved(object sender, Skylabs.Lobby.DataRecType type, object data)
+        private void LobbyClientOnOnDataRecieved(object sender, DataRecType type, object data)
         {
             Dispatcher.BeginInvoke(new Action(()=>
             {
                 switch(type)
                 {
-                    case Skylabs.Lobby.DataRecType.FriendList:
+                    case DataRecType.FriendList:
                         break;
-                    case Skylabs.Lobby.DataRecType.MyInfo:
+                    case DataRecType.MyInfo:
                         break;
-                    case Skylabs.Lobby.DataRecType.GameList:
+                    case DataRecType.GameList:
                         break;
-                    case Skylabs.Lobby.DataRecType.HostedGameReady:
+                    case DataRecType.HostedGameReady:
                         break;
-                    case Skylabs.Lobby.DataRecType.GamesNeedRefresh:
+                    case DataRecType.GamesNeedRefresh:
                         break;
-                    case Skylabs.Lobby.DataRecType.Announcement:
+                    case DataRecType.Announcement:
                         var d = data as Dictionary<String , String>;
                         if(d != null)
                             MessageBox.Show(d["Message"] , d["Subject"] , MessageBoxButton.OK , MessageBoxImage.Exclamation);

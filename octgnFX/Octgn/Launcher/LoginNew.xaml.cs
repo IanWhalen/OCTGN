@@ -23,6 +23,8 @@ namespace Octgn.Launcher
     using System.Windows.Media;
     using System.Windows.Navigation;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
 
     using Octgn.Extentions;

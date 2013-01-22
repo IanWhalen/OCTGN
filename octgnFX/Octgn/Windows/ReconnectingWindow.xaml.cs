@@ -16,6 +16,8 @@ using agsXMPP;
 
 namespace Octgn.Windows
 {
+    using Skylabs.Lobby.Library;
+
     /// <summary>
     /// Interaction logic for ReconnectingWindow.xaml
     /// </summary>

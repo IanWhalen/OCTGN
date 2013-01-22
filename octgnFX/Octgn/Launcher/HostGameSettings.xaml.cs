@@ -13,6 +13,8 @@ using Skylabs.Net;
 
 namespace Octgn.Launcher
 {
+    using Skylabs.Lobby.Library;
+
     /// <summary>
     ///   Interaction logic for ContactList.xaml
     /// </summary>
@@ -44,9 +46,9 @@ namespace Octgn.Launcher
         }
 
 
-        private void LobbyClientOnOnDataRecieved(object sender , Skylabs.Lobby.DataRecType type , object data)
+        private void LobbyClientOnOnDataRecieved(object sender , DataRecType type , object data)
         {
-            if (type == Skylabs.Lobby.DataRecType.HostedGameReady)
+            if (type == DataRecType.HostedGameReady)
             {
                 var port = data as Int32?;
                 if (port != null)
@@ -76,7 +78,7 @@ namespace Octgn.Launcher
             e.Handled = true;
             _beginHost = true;
             _ns = NavigationService;
-            Program.LobbyClient.BeginHostGame(_game, textBox1.Text);
+            Program.LobbyClient.BeginHostGame(_game, textBox1.Text,textBox2.Text);
             
         }
 

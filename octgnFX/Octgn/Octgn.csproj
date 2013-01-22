@@ -1053,6 +1053,10 @@
       <Project>{6DD203AF-5003-4AF3-A982-67F10B704D4A}</Project>
       <Name>Octgn.Server</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Skylabs.Lobby.Library\Skylabs.Lobby.Library.csproj">
+      <Project>{E4D4F5CF-0DA8-43A7-9D1D-6A5AAA1CF192}</Project>
+      <Name>Skylabs.Lobby.Library</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Skylabs.Lobby\Skylabs.Lobby.csproj">
       <Project>{131805CF-7971-4813-848B-CE156D4F6827}</Project>
       <Name>Skylabs.Lobby</Name>

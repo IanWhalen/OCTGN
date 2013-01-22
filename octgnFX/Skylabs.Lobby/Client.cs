@@ -17,6 +17,8 @@ namespace Skylabs.Lobby
     using System.Linq;
     using System.Net.Sockets;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
     using agsXMPP.Factory;
     using agsXMPP.Net;
@@ -1010,12 +1012,14 @@ namespace Skylabs.Lobby
         /// <param name="gamename">
         /// The gamename.
         /// </param>
-        public void BeginHostGame(Game game, string gamename)
+        public void BeginHostGame(Game game, string gamename, string password)
         {
-            string data = string.Format("{0},:,{1},:,{2}", game.Id.ToString(), game.Version, gamename);
-            var m = new Message(new Jid("gameserv@" + Host), this.Me.JidUser, MessageType.normal, data, "hostgame");
-            m.GenerateId();
-            this.xmpp.Send(m);
+            throw new NotImplementedException();
+            //new Library.Models.HostedGame(game.Id,game.Version,game.Name,gamename,password);
+            //string data = string.Format("{0},:,{1},:,{2}", game.Id.ToString(), game.Version, gamename);
+            //var m = new Message(new Jid("gameserv@" + Host), this.Me.JidUser, MessageType.normal, data, "hostgame");
+            //m.GenerateId();
+            //this.xmpp.Send(m);
         }
 
         /// <summary>

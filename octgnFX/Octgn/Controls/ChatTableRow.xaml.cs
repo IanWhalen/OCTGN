@@ -20,6 +20,8 @@ namespace Octgn.Controls
 
     using Octgn.Library.Utils;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
 
     using Skylabs.Lobby;

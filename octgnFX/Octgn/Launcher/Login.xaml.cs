@@ -33,6 +33,8 @@ namespace Octgn.Launcher
     using System.Web;
     using System.Xml;
 
+    using Skylabs.Lobby.Library;
+
     using Client = Skylabs.Lobby.Client;
     using Game = Octgn.Data.Game;
 
@@ -361,7 +363,7 @@ namespace Octgn.Launcher
                                                     StopSpinning();
                                                     switch (success)
                                                     {
-                                                        case Skylabs.Lobby.LoginResult.Success:
+                                                        case LoginResult.Success:
                                                             Prefs.Password = cbSavePassword.IsChecked == true
                                                                                  ? passwordBox1.Password.Encrypt()
                                                                                  : "";
@@ -372,12 +374,12 @@ namespace Octgn.Launcher
                                                             Application.Current.MainWindow = Program.MainWindow;
                                                             Program.LauncherWindow.Close();
                                                             break;
-                                                        case Skylabs.Lobby.LoginResult.Banned:
+                                                        case LoginResult.Banned:
                                                             DoErrorMessage("You have been banned until " +
                                                                            banEnd.ToShortTimeString() + " on " +
                                                                            banEnd.ToShortDateString());
                                                             break;
-                                                        case Skylabs.Lobby.LoginResult.Failure:
+                                                        case LoginResult.Failure:
                                                             DoErrorMessage("Login Failed: " + message);
                                                             break;
                                                     }

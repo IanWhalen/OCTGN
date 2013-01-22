@@ -14,6 +14,8 @@ using agsXMPP.protocol.client;
 
 namespace Octgn.Controls
 {
+    using Skylabs.Lobby.Library;
+
     /// <summary>
     ///   Interaction logic for FriendListItem.xaml
     /// </summary>

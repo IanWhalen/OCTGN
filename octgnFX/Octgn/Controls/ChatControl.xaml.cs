@@ -25,6 +25,7 @@ namespace Octgn.Controls
     using Octgn.Library.Utils;
 
     using Skylabs.Lobby;
+    using Skylabs.Lobby.Library;
 
     /// <summary>
     /// Interaction logic for ChatControl

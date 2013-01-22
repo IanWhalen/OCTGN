@@ -10,6 +10,8 @@ using System.Collections;
 
 namespace Octgn.Launcher
 {
+    using Skylabs.Lobby.Library;
+
     /// <summary>
     ///   Interaction logic for ContactList.xaml
     /// </summary>

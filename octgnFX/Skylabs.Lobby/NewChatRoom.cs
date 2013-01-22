@@ -14,6 +14,8 @@ namespace Skylabs.Lobby
     using System.Collections.Generic;
     using System.Linq;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
     using agsXMPP.protocol.client;
     using agsXMPP.protocol.extensions.chatstates;

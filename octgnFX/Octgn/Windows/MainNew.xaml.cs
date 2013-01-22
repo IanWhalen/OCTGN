@@ -14,6 +14,8 @@ namespace Octgn.Windows
     using System.Windows;
     using System.Windows.Input;
 
+    using Skylabs.Lobby.Library;
+
     using agsXMPP;
 
     using Octgn.Controls;
