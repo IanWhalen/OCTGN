@@ -72,6 +72,9 @@ namespace Octgn.Scripting
 
         public String[] TestScripts(Game game)
         {
+            var workingDirectory = Path.Combine(Prefs.DataDirectory, "Games", Program.Game.Definition.Id.ToString());
+            src.Engine.SetSearchPaths(new List<string>{workingDirectory});
+
             var errors = new List<string>();
             foreach (ScriptDef s in game.Definition.Scripts)
             {
