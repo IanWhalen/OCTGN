@@ -89,6 +89,32 @@ namespace Octgn.Definitions
 
             return true;
         }
+
+        public bool CheckPythonScripts(Game game, string copyto)
+        {
+            // make temp directory
+            string tmpDir = Path.Combine(Prefs.DataDirectory,"Games", game.Id.ToString(), "tmp");
+            if (!Directory.Exists(tmpDir))
+                Directory.CreateDirectory(tmpDir);
+
+            // extract O8G to temp directory
+            using (Package package = Package.Open(copyto, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                foreach (var p in package.GetParts())
+                {
+                    this.ExtractPart(p,tmpDir);
+                }
+            }
+
+            // run tests on O8G
+            if (!Windows.UpdateChecker.CheckGameDef(game, tmpDir))
+                return false;
+            
+            // delete temp directory
+            Directory.Delete(tmpDir, true);
+
+            return true;
+        }
         
         public bool Install()
         {
@@ -134,7 +160,7 @@ namespace Octgn.Definitions
                 if (!game.CheckVersion()) return false;
 
                 //Check game scripts
-                if (!Windows.UpdateChecker.CheckGameDef(game))
+                if (!CheckPythonScripts(game, copyto))
                     return false;
 
                 // Check if the game already exists

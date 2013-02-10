@@ -493,11 +493,12 @@ namespace Octgn.Windows
             return values;
         }
 
-        public static bool CheckGameDef(GameDef game)
+        public static bool CheckGameDef(GameDef game, string tmpDir)
         {
             Program.Game = new Game(game);
             Program.Game.TestBegin();
             var engine = new Engine(true);
+            engine.SetSearchPaths(new List<string>{tmpDir});
             string[] terr = engine.TestScripts(Program.Game);
             Program.Game.End();
             if (terr.Length > 0)
